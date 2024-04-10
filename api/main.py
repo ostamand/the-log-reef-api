@@ -6,7 +6,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
-from api import schemas
+from api import schemas, __version__
 from api.persistence import users, params, aquariums, testkits
 from api import summary
 from api.persistence.database import get_db
@@ -32,7 +32,7 @@ app.add_middleware(
 
 @app.get("/")
 def read_root():
-    return {"api": "logreef", "version": "0.1.0"}
+    return {"api": "logreef", "version": __version__}
 
 
 @app.get("/users/me", response_model=schemas.Me)
