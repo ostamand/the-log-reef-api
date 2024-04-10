@@ -1,0 +1,7 @@
+venv
+__pycache__
+*.db
+sql
+.DS_Store
+.pytest_cache
+populate.py
