@@ -47,6 +47,7 @@ def create(
     value: float,
     timestamp: datetime | None = None,
     test_kit: models.TestKit | str | TestKits | None = None,
+    commit: bool = True
 ):
     if not timestamp:
         timestamp = datetime.now(timezone.utc)
@@ -86,9 +87,11 @@ def create(
         timestamp=timestamp,
     )
 
-    db.add(db_value)
-    db.commit()
-    db.refresh(db_value)
+    if commit:
+        db.add(db_value)
+        db.commit()
+        db.refresh(db_value)
+        
     return db_value
 
 

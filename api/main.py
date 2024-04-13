@@ -36,7 +36,7 @@ def read_root():
 
 
 @app.get("/users/me", response_model=schemas.Me)
-def read_users_me(
+async def read_users_me(
     current_user: Annotated[schemas.User, Depends(get_current_user)],
     db: Session = Depends(get_db),
 ):
@@ -66,6 +66,14 @@ def create_aquarium(
     return aquariums.create(db, current_user.id, aquariumCreate.name)
 
 
+@app.get("/aquariums")
+def get_aquariums(
+    current_user: Annotated[schemas.User, Depends(get_current_user)],
+    db: Session = Depends(get_db),
+):
+    return aquariums.get_all(db, current_user.id)
+
+
 @app.post("/login")
 def login(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
@@ -87,6 +95,7 @@ def create_param(
     current_user: Annotated[schemas.User, Depends(get_current_user)],
     paramCreate: schemas.ParamCreate,
     db: Session = Depends(get_db),
+    commit: bool = True
 ):
     # TODO: unit conversion
     # TODO: add optional time to data
@@ -97,6 +106,7 @@ def create_param(
         paramCreate.param_type_name,
         paramCreate.value,
         test_kit=paramCreate.test_kit_name,
+        commit=commit
     )
 
 
