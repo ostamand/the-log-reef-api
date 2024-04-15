@@ -24,6 +24,7 @@ def get_by_type(db: Session, user_id: int, param_type: str) -> dict[str, any]:
 
     summary = {
         "values": [],
+        "ids": [],
         "timestamps": [],
         "time_since_secs": [],
         "count_last_week": None,
@@ -34,6 +35,7 @@ def get_by_type(db: Session, user_id: int, param_type: str) -> dict[str, any]:
 
     for param in last_params:
         summary["values"].append(float(param.value))
+        summary["ids"].append(int(param.id))
         summary["timestamps"].append(param.timestamp)
 
     now = datetime.datetime.now(datetime.UTC).replace(tzinfo=None)
