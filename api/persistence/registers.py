@@ -29,13 +29,15 @@ def get_by_key(db: Session, key: str) -> models.RegisterAccessCode:
 
 
 def update(db: Session, code_id: int, user_id: int, used_on: datetime):
-    db.query(models.RegisterAccessCode).filter(
-        models.RegisterAccessCode.id == code_id
-    ).update(
-        {
-            models.RegisterAccessCode.used_on: used_on,
-            models.RegisterAccessCode.user_id: user_id,
-        }
+    res = (
+        db.query(models.RegisterAccessCode)
+        .filter(models.RegisterAccessCode.id == code_id)
+        .update(
+            {
+                models.RegisterAccessCode.used_on: used_on,
+                models.RegisterAccessCode.user_id: user_id,
+            }
+        )
     )
     db.commit()
     return (

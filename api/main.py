@@ -12,6 +12,7 @@ from api import summary
 from api.persistence.database import get_db
 from api.security import create_access_token
 from api.user import get_current_user, get_me
+from api.register import register_user
 
 logging.getLogger("passlib").setLevel(logging.ERROR)
 
@@ -43,17 +44,19 @@ async def read_users_me(
     return get_me(db, current_user)
 
 
-@app.post("/users", response_model=schemas.User)
-def create_user(userCreate: schemas.RegisterUser, db: Session = Depends(get_db)):
-    db_user = users.get_by_username(db, userCreate.username)
-    if db_user:
-        raise HTTPException(status_code=400, detail="Username already exists")
-    return users.create(db, userCreate.username, userCreate.password)
-
-
-@app.post("/register")
-def register_user(userData: schemas.RegisterUser, db: Session = Depends(get_db)):
-    pass
+@app.post("/register", response_model=schemas.User)
+def create_user_with_code(
+    userData: schemas.RegisterUser, db: Session = Depends(get_db)
+):
+    ok, data = register_user(
+        db,
+        username=userData.username,
+        password=userData.password,
+        register_code=userData.register_access_code,
+    )
+    if not ok:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, detail=data["detail"])
+    return data["user"]
 
 
 @app.post("/aquariums")
