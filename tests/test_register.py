@@ -1,4 +1,4 @@
-from api.register import create_register_code, register_user
+from api.register import create_register_code, register_user, register_code_is_valid
 from api.persistence import registers
 from api.persistence.database import delete_from_db
 
@@ -27,6 +27,7 @@ def test_can_create_user_with_valid_key(test_db):
 
     assert "user" in data
     user = data["user"]
+    aquarium = data["aquarium"]
     assert user.username == username
 
     # check register code was used
@@ -37,6 +38,7 @@ def test_can_create_user_with_valid_key(test_db):
 
     delete_from_db(test_db, register_code)
     delete_from_db(test_db, user)
+    delete_from_db(test_db, aquarium)
 
 
 def test_register_code_not_valid(test_db):
@@ -48,3 +50,15 @@ def test_register_code_not_valid(test_db):
 
     assert not ok
     assert "detail" in data
+
+
+def test_can_check_if_register_code_is_valid(test_db):
+    not_valid = get_random_string(12)
+
+    assert not register_code_is_valid(test_db, not_valid)
+
+    register_code = create_register_code(test_db)
+
+    assert register_code_is_valid(test_db, register_code.key)
+
+    delete_from_db(test_db, register_code)

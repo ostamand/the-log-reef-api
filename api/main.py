@@ -12,7 +12,7 @@ from api import summary
 from api.persistence.database import get_db
 from api.security import create_access_token
 from api.user import get_current_user, get_me
-from api.register import register_user
+from api.register import register_user, register_code_is_valid
 
 logging.getLogger("passlib").setLevel(logging.ERROR)
 
@@ -57,6 +57,18 @@ def create_user_with_code(
     if not ok:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, detail=data["detail"])
     return data["user"]
+
+
+@app.get("/register")
+def check_register(code: str | None = None,  db: Session = Depends(get_db)):
+    response = {}
+    print(code)
+    if code is not None: 
+        if register_code_is_valid(db, code):
+            response["code"] = True
+        else:
+            response["code"] = False
+    return response
 
 
 @app.post("/aquariums")
