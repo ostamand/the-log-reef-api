@@ -11,10 +11,13 @@ class Aquarium(BaseModel):
 
 class UserBase(BaseModel):
     username: str
+    fullname: str | None = None
+    email: str | None = None
 
 
-class UserCreate(UserBase):
+class RegisterUser(UserBase):
     password: str
+    register_access_code: str
 
 
 class User(UserBase):

@@ -44,11 +44,16 @@ async def read_users_me(
 
 
 @app.post("/users", response_model=schemas.User)
-def create_user(userCreate: schemas.UserCreate, db: Session = Depends(get_db)):
+def create_user(userCreate: schemas.RegisterUser, db: Session = Depends(get_db)):
     db_user = users.get_by_username(db, userCreate.username)
     if db_user:
         raise HTTPException(status_code=400, detail="Username already exists")
     return users.create(db, userCreate.username, userCreate.password)
+
+
+@app.post("/register")
+def register_user(userData: schemas.RegisterUser, db: Session = Depends(get_db)):
+    pass
 
 
 @app.post("/aquariums")
@@ -95,7 +100,7 @@ def create_param(
     current_user: Annotated[schemas.User, Depends(get_current_user)],
     paramCreate: schemas.ParamCreate,
     db: Session = Depends(get_db),
-    commit: bool = True
+    commit: bool = True,
 ):
     # TODO: unit conversion
     # TODO: add optional time to data
@@ -106,7 +111,7 @@ def create_param(
         paramCreate.param_type_name,
         paramCreate.value,
         test_kit=paramCreate.test_kit_name,
-        commit=commit
+        commit=commit,
     )
 
 
@@ -119,6 +124,24 @@ def get_params(
     offset: int = 0,
 ):
     return params.get_by_type(db, current_user.id, type, limit, offset)
+
+
+@app.get("/params/{param_id}")
+def get_param_by_id(
+    param_id: int,
+    current_user: Annotated[schemas.User, Depends(get_current_user)],
+):
+    return params.get_by_id(current_user.id, param_id)
+
+
+@app.put("/params/{param_id}")
+def update_param_by_id(
+    param_id: int,
+    value: float,
+    current_user: Annotated[schemas.User, Depends(get_current_user)],
+    db: Session = Depends(get_db),
+):
+    return params.update_by_id(db, current_user.id, param_id, value)
 
 
 @app.get("/summary/")

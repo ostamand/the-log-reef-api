@@ -13,6 +13,16 @@ class User(Base):
     admin = mapped_column(Boolean)
 
 
+class RegisterAccessCode(Base):
+    __tablename__ = "register_access_codes"
+
+    id = mapped_column(Integer, primary_key=True)
+    user_id = mapped_column(Integer, ForeignKey(User.id), nullable=True)
+    created_on = mapped_column(DateTime, nullable=True)
+    used_on = mapped_column(DateTime, nullable=True)
+    key = mapped_column(String, nullable=False, unique=True)
+
+
 class ParamType(Base):
     __tablename__ = "param_types"
     name = mapped_column(String, primary_key=True)
