@@ -53,6 +53,8 @@ def create_user_with_code(
         username=userData.username,
         password=userData.password,
         register_code=userData.register_access_code,
+        email=userData.email,
+        fullname=userData.fullname,
     )
     if not ok:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, detail=data["detail"])
@@ -60,10 +62,10 @@ def create_user_with_code(
 
 
 @app.get("/register")
-def check_register(code: str | None = None,  db: Session = Depends(get_db)):
+def check_register(code: str | None = None, db: Session = Depends(get_db)):
     response = {}
     print(code)
-    if code is not None: 
+    if code is not None:
         if register_code_is_valid(db, code):
             response["code"] = True
         else:

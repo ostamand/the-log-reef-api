@@ -22,7 +22,14 @@ def create_register_code(db: Session) -> models.RegisterAccessCode:
     return registers.create(db, register_code)
 
 
-def register_user(db: Session, username: str, password: str, register_code: str):
+def register_user(
+    db: Session,
+    username: str,
+    password: str,
+    register_code: str,
+    fullname: str | None = None,
+    email: str | None = None,
+):
     # check register access token
     if len(register_code) != REGISTER_ACCESS_CODE_LENGTH:
         return False, {"detail": "Wrong access code"}
@@ -30,7 +37,7 @@ def register_user(db: Session, username: str, password: str, register_code: str)
     if access_code_db is None:
         return False, {"detail": "Access code already used or not available"}
 
-    user_db = users.create(db, username, password)
+    user_db = users.create(db, username, password, email=email, fullname=fullname)
     if not user_db:
         return False, {"detail": "Can't create user"}
 

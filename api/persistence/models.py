@@ -9,6 +9,8 @@ class User(Base):
 
     id = mapped_column(Integer, primary_key=True)
     username = mapped_column(String, unique=True, index=True)
+    fullname = mapped_column(String, nullable=True)
+    email = mapped_column(String, nullable=True)
     hash_password = mapped_column(String)
     admin = mapped_column(Boolean)
 
