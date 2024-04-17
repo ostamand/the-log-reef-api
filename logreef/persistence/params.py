@@ -137,7 +137,7 @@ def get_by_type(
 
 
 def get_by_id(user_id: int, param_id: int):
-    with engine.connect() as con:
+    with Database().get_engine().connect() as con:
         sql = text(
             """
         SELECT v.id, v.param_type_name, t.name AS testkit_name, t.display_name AS testkit_display_name, t.display_unit as testkit_display_unit, v.value, v.timestamp
