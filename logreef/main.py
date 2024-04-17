@@ -6,13 +6,13 @@ from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
-from api import schemas, __version__
-from api.persistence import users, params, aquariums, testkits
-from api import summary
-from api.persistence.database import get_db
-from api.security import create_access_token
-from api.user import get_current_user, get_me
-from api.register import register_user, register_code_is_valid
+from logreef import schemas, __version__
+from logreef.persistence import users, params, aquariums, testkits
+from logreef import summary
+from logreef.persistence.database import get_db
+from logreef.security import create_access_token
+from logreef.user import get_current_user, get_me
+from logreef.register import register_user, register_code_is_valid
 
 logging.getLogger("passlib").setLevel(logging.ERROR)
 

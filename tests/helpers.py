@@ -1,9 +1,9 @@
 import string
 import random
 
-from api.persistence import users, models, aquariums
-from api.persistence.database import Session
-from api.config import get_config, ConfigAPI
+from logreef.persistence import users, models, aquariums
+from logreef.persistence.database import Session
+from logreef.config import get_config, ConfigAPI
 
 
 def get_user(db: Session) -> models.User:

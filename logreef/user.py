@@ -4,11 +4,11 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 
-from api.security import get_payload_from_token
-from api.persistence.database import get_db
-from api.persistence import users, aquariums, models
+from logreef.security import get_payload_from_token
+from logreef.persistence.database import get_db
+from logreef.persistence import users, aquariums, models
 
-from api import schemas
+from logreef import schemas
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 

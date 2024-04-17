@@ -2,9 +2,9 @@ from datetime import datetime
 from datetime import UTC
 from sqlalchemy.orm import Session
 
-from api.persistence import models, users, aquariums
-from api.utils import get_random_string
-from api.persistence import registers
+from logreef.persistence import models, users, aquariums
+from logreef.utils import get_random_string
+from logreef.persistence import registers
 
 REGISTER_ACCESS_CODE_LENGTH = 12
 DEFAULT_AQUARIUM_NAME = "Default"

@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 
-from api.persistence import models
-from api.security import hash_password, verify_password
+from logreef.persistence import models
+from logreef.security import hash_password, verify_password
 
 
 def create(

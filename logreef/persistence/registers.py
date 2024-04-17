@@ -1,7 +1,7 @@
 from datetime import datetime
 
-from api.persistence import models
-from api.persistence.database import Session
+from logreef.persistence import models
+from logreef.persistence.database import Session
 
 
 def create(db: Session, data: models.RegisterAccessCode) -> models.RegisterAccessCode:

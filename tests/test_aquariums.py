@@ -1,8 +1,8 @@
 from .helpers import get_random_string
 
-from api.persistence import users
-from api.persistence import aquariums
-from api.persistence.database import delete_from_db
+from logreef.persistence import users
+from logreef.persistence import aquariums
+from logreef.persistence.database import delete_from_db
 
 
 def test_create_aquarium(test_db):

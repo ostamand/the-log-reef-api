@@ -7,7 +7,7 @@ install:
 
 server:
 	source ./venv/bin/activate; \
-	uvicorn api.main:app --reload
+	uvicorn logreef.main:app --reload
 
 clean:
 	rm -rf venv; \
@@ -15,18 +15,21 @@ clean:
 	find . -type d -name __pycache__ -delete;
 
 format:
-	black populate.py
-	black api
+	black logreef
 	black tests
+	black scripts
 
 build: 
-	docker build -t aqualog-api .
+	docker build -t logreef-api .
 
 run:
-	docker run -d -p 80:80 aqualog-api
+	docker run -d -p 80:80 logreef-api
 
 test:
 	pytest -s
 
 deploy:
 	./scripts/deploy.sh
+
+install:
+	pip install -e .

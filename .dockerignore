@@ -4,4 +4,6 @@ __pycache__
 sql
 .DS_Store
 .pytest_cache
-populate.py
+scripts
+*.egg-info
+notes.md

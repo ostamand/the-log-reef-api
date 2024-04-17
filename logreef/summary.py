@@ -1,7 +1,7 @@
 import datetime
 
-from api.persistence import params
-from api.persistence.database import Session
+from logreef.persistence import params
+from logreef.persistence.database import Session
 
 
 def get_for_all(db: Session, user_id: int) -> dict[str, dict[str, any]]:

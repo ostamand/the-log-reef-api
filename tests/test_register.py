@@ -1,8 +1,8 @@
-from api.register import create_register_code, register_user, register_code_is_valid
-from api.persistence import registers
-from api.persistence.database import delete_from_db
+from logreef.register import create_register_code, register_user, register_code_is_valid
+from logreef.persistence import registers
+from logreef.persistence.database import delete_from_db
 
-from api.utils import get_random_string
+from logreef.utils import get_random_string
 
 
 def test_can_create_register_code(test_db):

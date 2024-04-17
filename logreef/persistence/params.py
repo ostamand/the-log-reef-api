@@ -3,21 +3,21 @@ from datetime import datetime, timezone, UTC, timedelta
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 
-from api.persistence import models
-from api.persistence import aquariums
-from api.persistence.database import engine
-from api.config import (
+from logreef.persistence import models
+from logreef.persistence import aquariums
+from logreef.persistence.database import Database
+from logreef.config import (
     TestKits,
     ParamTypes,
     default_test_kits,
     get_param_type,
     get_test_kit,
 )
-from api.units.converter import convert_unit_for
+from logreef.units.converter import convert_unit_for
 
 
 def get_type_by_user(user_id: int) -> list[str]:
-    with engine.connect() as con:
+    with Database().get_engine().connect() as con:
         sql = text(
             """
             SELECT DISTINCT(param_types.name)

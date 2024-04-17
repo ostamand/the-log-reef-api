@@ -1,8 +1,8 @@
 from .helpers import save_random_user, get_random_string
 
-from api.persistence import aquariums
-from api.persistence.database import delete_from_db
-from api.user import get_me
+from logreef.persistence import aquariums
+from logreef.persistence.database import delete_from_db
+from logreef.user import get_me
 
 
 def test_me(test_db):

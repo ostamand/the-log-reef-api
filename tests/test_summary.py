@@ -2,10 +2,10 @@ import datetime
 
 import pytest
 
-from api.summary import get_by_type, get_for_all
-from api.persistence.database import delete_from_db
-from api.persistence import params
-from api.config import TestKits
+from logreef.summary import get_by_type, get_for_all
+from logreef.persistence.database import delete_from_db
+from logreef.persistence import params
+from logreef.config import TestKits
 from .helpers import save_random_aquarium, save_random_user
 
 

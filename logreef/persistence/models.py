@@ -1,7 +1,7 @@
 from sqlalchemy import Integer, String, Boolean, ForeignKey, Numeric, DateTime
 from sqlalchemy.orm import relationship, mapped_column, Mapped
 
-from api.persistence.database import Base
+from logreef.persistence.database import Base
 
 
 class User(Base):

@@ -1,11 +1,11 @@
 import pytest
 
-from api.persistence.database import SessionLocal
+from logreef.persistence.database import Database
 
 
 @pytest.fixture()
 def test_db():
-    db = SessionLocal()
+    db = Database().get_session()
     try:
         yield db
     finally:
