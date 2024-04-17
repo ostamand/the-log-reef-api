@@ -3,21 +3,21 @@ from datetime import datetime, timezone, UTC, timedelta
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 
-from api.persistence import models
-from api.persistence import aquariums
-from api.persistence.database import engine
-from api.config import (
+from logreef.persistence import models
+from logreef.persistence import aquariums
+from logreef.persistence.database import Database
+from logreef.config import (
     TestKits,
     ParamTypes,
     default_test_kits,
     get_param_type,
     get_test_kit,
 )
-from api.units.converter import convert_unit_for
+from logreef.units.converter import convert_unit_for
 
 
 def get_type_by_user(user_id: int) -> list[str]:
-    with engine.connect() as con:
+    with Database().get_engine().connect() as con:
         sql = text(
             """
             SELECT DISTINCT(param_types.name)
@@ -47,6 +47,7 @@ def create(
     value: float,
     timestamp: datetime | None = None,
     test_kit: models.TestKit | str | TestKits | None = None,
+    commit: bool = True,
 ):
     if not timestamp:
         timestamp = datetime.now(timezone.utc)
@@ -86,9 +87,11 @@ def create(
         timestamp=timestamp,
     )
 
-    db.add(db_value)
-    db.commit()
-    db.refresh(db_value)
+    if commit:
+        db.add(db_value)
+        db.commit()
+        db.refresh(db_value)
+
     return db_value
 
 
@@ -131,3 +134,43 @@ def get_by_type(
         raw_query = raw_query.offset(offset)
 
     return raw_query.all()
+
+
+def get_by_id(user_id: int, param_id: int):
+    with engine.connect() as con:
+        sql = text(
+            """
+        SELECT v.id, v.param_type_name, t.name AS testkit_name, t.display_name AS testkit_display_name, t.display_unit as testkit_display_unit, v.value, v.timestamp
+        FROM param_values AS v
+        JOIN test_kits AS t ON v.test_kit_name = t.name
+        WHERE user_id = :user_id and id = :param_id
+        LIMIT 1;
+        """
+        )
+        result = con.execute(sql, {"param_id": param_id, "user_id": user_id})
+        cols = [
+            "id",
+            "param_type_name",
+            "testkit_name",
+            "testkit_display_name",
+            "testkit_display_unit",
+            "value",
+            "timestamp",
+        ]
+        data = [row for row in result]
+        if len(data) == 1:
+            return {cols[i]: item for i, item in enumerate(data[0])}
+        return {}
+
+
+def update_by_id(db: Session, user_id: int, param_id: int, updatedValue: float):
+    db.query(models.ParamValue).filter(models.ParamValue.user_id == user_id).filter(
+        models.ParamValue.id == param_id
+    ).update({models.ParamValue.value: updatedValue})
+    db.commit()
+    return (
+        db.query(models.ParamValue)
+        .filter(models.ParamValue.user_id == user_id)
+        .filter(models.ParamValue.id == param_id)
+        .first()
+    )

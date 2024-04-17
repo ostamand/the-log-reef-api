@@ -1,5 +1,5 @@
-from api.persistence.database import Session
-from api.persistence import models
+from logreef.persistence.database import Session
+from logreef.persistence import models
 
 
 def get_all_by_type(db: Session, param_type: str):

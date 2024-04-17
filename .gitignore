@@ -5,5 +5,5 @@ sql
 .DS_Store
 notes.md
 .pytest_cache
-scripts/deploy.sh
-populate.py
+scripts
+*.egg-info

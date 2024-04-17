@@ -1,7 +1,7 @@
 from sqlalchemy import Integer, String, Boolean, ForeignKey, Numeric, DateTime
 from sqlalchemy.orm import relationship, mapped_column, Mapped
 
-from api.persistence.database import Base
+from logreef.persistence.database import Base
 
 
 class User(Base):
@@ -9,8 +9,20 @@ class User(Base):
 
     id = mapped_column(Integer, primary_key=True)
     username = mapped_column(String, unique=True, index=True)
+    fullname = mapped_column(String, nullable=True)
+    email = mapped_column(String, nullable=True)
     hash_password = mapped_column(String)
     admin = mapped_column(Boolean)
+
+
+class RegisterAccessCode(Base):
+    __tablename__ = "register_access_codes"
+
+    id = mapped_column(Integer, primary_key=True)
+    user_id = mapped_column(Integer, ForeignKey(User.id), nullable=True)
+    created_on = mapped_column(DateTime, nullable=True)
+    used_on = mapped_column(DateTime, nullable=True)
+    key = mapped_column(String, nullable=False, unique=True)
 
 
 class ParamType(Base):

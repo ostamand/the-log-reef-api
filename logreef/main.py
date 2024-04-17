@@ -6,12 +6,13 @@ from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
-from api import schemas, __version__
-from api.persistence import users, params, aquariums, testkits
-from api import summary
-from api.persistence.database import get_db
-from api.security import create_access_token
-from api.user import get_current_user, get_me
+from logreef import schemas, __version__
+from logreef.persistence import users, params, aquariums, testkits
+from logreef import summary
+from logreef.persistence.database import get_db
+from logreef.security import create_access_token
+from logreef.user import get_current_user, get_me
+from logreef.register import register_user, register_code_is_valid
 
 logging.getLogger("passlib").setLevel(logging.ERROR)
 
@@ -36,19 +37,40 @@ def read_root():
 
 
 @app.get("/users/me", response_model=schemas.Me)
-def read_users_me(
+async def read_users_me(
     current_user: Annotated[schemas.User, Depends(get_current_user)],
     db: Session = Depends(get_db),
 ):
     return get_me(db, current_user)
 
 
-@app.post("/users", response_model=schemas.User)
-def create_user(userCreate: schemas.UserCreate, db: Session = Depends(get_db)):
-    db_user = users.get_by_username(db, userCreate.username)
-    if db_user:
-        raise HTTPException(status_code=400, detail="Username already exists")
-    return users.create(db, userCreate.username, userCreate.password)
+@app.post("/register", response_model=schemas.User)
+def create_user_with_code(
+    userData: schemas.RegisterUser, db: Session = Depends(get_db)
+):
+    ok, data = register_user(
+        db,
+        username=userData.username,
+        password=userData.password,
+        register_code=userData.register_access_code,
+        email=userData.email,
+        fullname=userData.fullname,
+    )
+    if not ok:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, detail=data["detail"])
+    return data["user"]
+
+
+@app.get("/register")
+def check_register(code: str | None = None, db: Session = Depends(get_db)):
+    response = {}
+    print(code)
+    if code is not None:
+        if register_code_is_valid(db, code):
+            response["code"] = True
+        else:
+            response["code"] = False
+    return response
 
 
 @app.post("/aquariums")
@@ -64,6 +86,14 @@ def create_aquarium(
             detail=f"Aquarium '{aquariumCreate.name}' already exists",
         )
     return aquariums.create(db, current_user.id, aquariumCreate.name)
+
+
+@app.get("/aquariums")
+def get_aquariums(
+    current_user: Annotated[schemas.User, Depends(get_current_user)],
+    db: Session = Depends(get_db),
+):
+    return aquariums.get_all(db, current_user.id)
 
 
 @app.post("/login")
@@ -87,6 +117,7 @@ def create_param(
     current_user: Annotated[schemas.User, Depends(get_current_user)],
     paramCreate: schemas.ParamCreate,
     db: Session = Depends(get_db),
+    commit: bool = True,
 ):
     # TODO: unit conversion
     # TODO: add optional time to data
@@ -97,6 +128,7 @@ def create_param(
         paramCreate.param_type_name,
         paramCreate.value,
         test_kit=paramCreate.test_kit_name,
+        commit=commit,
     )
 
 
@@ -109,6 +141,24 @@ def get_params(
     offset: int = 0,
 ):
     return params.get_by_type(db, current_user.id, type, limit, offset)
+
+
+@app.get("/params/{param_id}")
+def get_param_by_id(
+    param_id: int,
+    current_user: Annotated[schemas.User, Depends(get_current_user)],
+):
+    return params.get_by_id(current_user.id, param_id)
+
+
+@app.put("/params/{param_id}")
+def update_param_by_id(
+    param_id: int,
+    value: float,
+    current_user: Annotated[schemas.User, Depends(get_current_user)],
+    db: Session = Depends(get_db),
+):
+    return params.update_by_id(db, current_user.id, param_id, value)
 
 
 @app.get("/summary/")

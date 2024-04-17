@@ -5,5 +5,5 @@ WORKDIR /code
 COPY ./requirements.txt /code/requirements.txt
 RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
 RUN pip install psycopg2-binary
-COPY ./api /code/api
-CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "80"]
+COPY ./logreef /code/logreef
+CMD ["uvicorn", "logreef.main:app", "--host", "0.0.0.0", "--port", "80"]

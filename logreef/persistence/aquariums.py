@@ -2,8 +2,8 @@ import datetime
 
 from sqlalchemy.orm import Session
 
-from api.persistence import models
-from api.persistence.database import add_to_db
+from logreef.persistence import models
+from logreef.persistence.database import add_to_db
 
 
 def create(

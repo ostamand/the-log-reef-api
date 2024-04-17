@@ -1,9 +1,9 @@
 import pytest
 import math
 
-from api.persistence import params
-from api.persistence.database import delete_from_db
-from api.config import TestKits, ParamTypes
+from logreef.persistence import params
+from logreef.persistence.database import delete_from_db
+from logreef.config import TestKits, ParamTypes
 
 from .helpers import save_random_user, save_random_aquarium
 

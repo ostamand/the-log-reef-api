@@ -1,4 +1,4 @@
-from api.config import ParamTypes, TestKits
+from logreef.config import ParamTypes, TestKits
 
 
 def convert_alkalinity_salifert_alk(value: float):

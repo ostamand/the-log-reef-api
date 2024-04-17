@@ -6,7 +6,7 @@ from datetime import timedelta, timezone
 from passlib.context import CryptContext
 from jose import jwt
 
-from api.config import get_config, ConfigAPI
+from logreef.config import get_config, ConfigAPI
 
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
