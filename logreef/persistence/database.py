@@ -15,6 +15,7 @@ from logreef.config import get_config, ConfigAPI
 # Base.metadata.create_all(bind=engine)
 Base = declarative_base()
 
+
 class Database:
 
     def __init__(self):
@@ -25,12 +26,14 @@ class Database:
     def get_session(self):
         if self.session is None:
             self.engine = self.get_engine()
-            self.session = scoped_session(sessionmaker(autocommit=False, autoflush=False, bind=self.engine))
+            self.session = scoped_session(
+                sessionmaker(autocommit=False, autoflush=False, bind=self.engine)
+            )
         return self.session()
-            
+
     def get_engine(self):
         if self.engine is None:
-            self.engine = create_engine(self.db_url) 
+            self.engine = create_engine(self.db_url)
             Base.metadata.create_all(bind=self.engine)
         return self.engine
 

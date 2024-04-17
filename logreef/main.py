@@ -143,12 +143,31 @@ def get_params(
     return params.get_by_type(db, current_user.id, type, limit, offset)
 
 
+@app.delete("/params/{param_id}")
+def delete_param_by_id(
+    param_id,
+    current_user: Annotated[schemas.User, Depends(get_current_user)],
+    db: Session = Depends(get_db),
+):
+    try:
+        deleted = params.delete_by_id(db, current_user.id, param_id)
+    except:
+        raise HTTPException(
+            status.HTTP_400_BAD_REQUEST, detail="Error while trying to delete parameter"
+        )
+    if not deleted:
+        raise HTTPException(
+            status.HTTP_400_BAD_REQUEST,
+            detail="Parameter does not exists, can't delete",
+        )
+
+
 @app.get("/params/{param_id}")
 def get_param_by_id(
     param_id: int,
     current_user: Annotated[schemas.User, Depends(get_current_user)],
 ):
-    return params.get_by_id(current_user.id, param_id)
+    return params.get_info_by_id(current_user.id, param_id)
 
 
 @app.put("/params/{param_id}")

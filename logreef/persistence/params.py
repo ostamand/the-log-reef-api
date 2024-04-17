@@ -5,7 +5,7 @@ from sqlalchemy import text
 
 from logreef.persistence import models
 from logreef.persistence import aquariums
-from logreef.persistence.database import Database
+from logreef.persistence.database import Database, delete_from_db
 from logreef.config import (
     TestKits,
     ParamTypes,
@@ -136,7 +136,7 @@ def get_by_type(
     return raw_query.all()
 
 
-def get_by_id(user_id: int, param_id: int):
+def get_info_by_id(user_id: int, param_id: int):
     with Database().get_engine().connect() as con:
         sql = text(
             """
@@ -161,6 +161,17 @@ def get_by_id(user_id: int, param_id: int):
         if len(data) == 1:
             return {cols[i]: item for i, item in enumerate(data[0])}
         return {}
+
+
+def delete_by_id(db: Session, user_id: int, param_id: int):
+    rows = (
+        db.query(models.ParamValue)
+        .filter(models.ParamValue.user_id == user_id)
+        .filter(models.ParamValue.id == param_id)
+        .delete()
+    )
+    db.commit()
+    return rows
 
 
 def update_by_id(db: Session, user_id: int, param_id: int, updatedValue: float):
