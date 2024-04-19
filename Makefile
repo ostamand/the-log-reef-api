@@ -6,10 +6,6 @@ install:
 	pip install -r requirements.txt;
 	pip install -e .
 
-server:
-	source ./venv/bin/activate; \
-	uvicorn logreef.main:app --reload
-
 clean:
 	rm -rf venv; \
 	find . -type f -name *.pyc -delete; \
@@ -20,14 +16,11 @@ format:
 	black tests
 	black scripts
 
-build: 
-	docker build -t logreef-api .
-
-run:
-	docker run -it -p 80:80 logreef-api
-
 test:
 	docker compose run --build --rm test pytest -s
+
+server:
+	docker compose up -d --build
 
 deploy:
 	./scripts/deploy.sh
