@@ -1,3 +1,6 @@
+from datetime import datetime
+from datetime import UTC
+from datetime import timedelta
 import pytest
 import math
 
@@ -5,7 +8,57 @@ from logreef.persistence import params
 from logreef.persistence.database import delete_from_db
 from logreef.config import TestKits, ParamTypes
 
-from .helpers import save_random_user, save_random_aquarium
+from .helpers import (
+    save_random_user,
+    save_random_aquarium,
+    save_random_user_and_aquarium,
+)
+
+
+def test_can_get_stats_for_n_days(test_db):
+    user, aquarium = save_random_user_and_aquarium(test_db)
+
+    result = params.get_stats_by_type_last_n_days(
+        user.id, ParamTypes.ALKALINITY.value, 0
+    )
+
+    assert result["count"] == 0
+    assert result["avg"] is None
+    assert result["std"] is None
+
+    n = 7  # will save one param per day
+    for i in range(n):
+        params.create(
+            test_db,
+            user.id,
+            aquarium.id,
+            ParamTypes.ALKALINITY,
+            i,
+            datetime.now(UTC) - timedelta(days=i),
+        )
+
+    result = params.get_stats_by_type_last_n_days(
+        user.id, ParamTypes.ALKALINITY.value, 1
+    )
+
+    assert result["count"] == 2
+    assert result["avg"] == (0 + 1) / 2
+
+    result = params.get_stats_by_type_last_n_days(
+        user.id, ParamTypes.ALKALINITY.value, 2
+    )
+
+    assert result["count"] == 3
+    assert result["avg"] == (0 + 1 + 2) / 3
+
+    result = params.get_stats_by_type_last_n_days(
+        user.id, ParamTypes.ALKALINITY.value, 7
+    )
+
+    assert result["count"] == 7
+    assert result["avg"] == (0 + 1 + 2 + 3 + 4 + 5 + 6) / 7
+
+    delete_from_db(test_db, user)
 
 
 def test_create_value(test_db):
@@ -40,8 +93,8 @@ def test_can_get_param_by_type(test_db):
     user = save_random_user(test_db)
     aquarium = save_random_aquarium(test_db, user.id)
 
-    param_1 = params.create(test_db, user.id, aquarium.name, "ph", 1.0)
-    param_2 = params.create(
+    params.create(test_db, user.id, aquarium.name, "ph", 1.0)
+    params.create(
         test_db,
         user.id,
         aquarium.name,
@@ -104,7 +157,7 @@ def test_can_save_param_with_test_kit(test_db):
 
     value = 9.0
 
-    param = params.create(
+    params.create(
         test_db,
         user.id,
         aquarium.id,
@@ -126,7 +179,7 @@ def test_can_save_param_with_convert(test_db):
     aquarium = save_random_aquarium(test_db, user.id)
 
     # string for definition to mimic API call
-    param = params.create(
+    params.create(
         test_db, user.id, aquarium.id, "alkalinity", 0.5, test_kit="salifert_alkalinity"
     )
 

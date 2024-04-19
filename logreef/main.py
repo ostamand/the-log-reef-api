@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 from logreef import schemas, __version__
 from logreef.persistence import users, params, aquariums, testkits
 from logreef import summary
-from logreef.persistence.database import get_db
+from logreef.persistence.database import get_session
 from logreef.security import create_access_token
 from logreef.user import get_current_user, get_me
 from logreef.register import register_user, register_code_is_valid
@@ -39,14 +39,14 @@ def read_root():
 @app.get("/users/me", response_model=schemas.Me)
 async def read_users_me(
     current_user: Annotated[schemas.User, Depends(get_current_user)],
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_session),
 ):
     return get_me(db, current_user)
 
 
 @app.post("/register", response_model=schemas.User)
 def create_user_with_code(
-    userData: schemas.RegisterUser, db: Session = Depends(get_db)
+    userData: schemas.RegisterUser, db: Session = Depends(get_session)
 ):
     ok, data = register_user(
         db,
@@ -62,7 +62,7 @@ def create_user_with_code(
 
 
 @app.get("/register")
-def check_register(code: str | None = None, db: Session = Depends(get_db)):
+def check_register(code: str | None = None, db: Session = Depends(get_session)):
     response = {}
     print(code)
     if code is not None:
@@ -77,7 +77,7 @@ def check_register(code: str | None = None, db: Session = Depends(get_db)):
 def create_aquarium(
     current_user: Annotated[schemas.User, Depends(get_current_user)],
     aquariumCreate: schemas.AquariumCreate,
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_session),
 ):
     aquarium_db = aquariums.get_by_name(db, current_user.id, aquariumCreate.name)
     if aquarium_db is not None:
@@ -91,7 +91,7 @@ def create_aquarium(
 @app.get("/aquariums")
 def get_aquariums(
     current_user: Annotated[schemas.User, Depends(get_current_user)],
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_session),
 ):
     return aquariums.get_all(db, current_user.id)
 
@@ -99,7 +99,7 @@ def get_aquariums(
 @app.post("/login")
 def login(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_session),
 ) -> schemas.Token:
     user = users.authenticate(db, form_data.username, form_data.password)
     if not user:
@@ -116,7 +116,7 @@ def login(
 def create_param(
     current_user: Annotated[schemas.User, Depends(get_current_user)],
     paramCreate: schemas.ParamCreate,
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_session),
     commit: bool = True,
 ):
     # TODO: unit conversion
@@ -135,7 +135,7 @@ def create_param(
 @app.get("/params/")
 def get_params(
     current_user: Annotated[schemas.User, Depends(get_current_user)],
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_session),
     type: str | None = None,
     limit: int = 200,
     offset: int = 0,
@@ -147,7 +147,7 @@ def get_params(
 def delete_param_by_id(
     param_id,
     current_user: Annotated[schemas.User, Depends(get_current_user)],
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_session),
 ):
     try:
         deleted = params.delete_by_id(db, current_user.id, param_id)
@@ -175,7 +175,7 @@ def update_param_by_id(
     param_id: int,
     value: float,
     current_user: Annotated[schemas.User, Depends(get_current_user)],
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_session),
 ):
     return params.update_by_id(db, current_user.id, param_id, value)
 
@@ -183,7 +183,7 @@ def update_param_by_id(
 @app.get("/summary/")
 def get_summary(
     current_user: Annotated[schemas.User, Depends(get_current_user)],
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_session),
     type: str | None = None,
 ):
     if type is not None:
@@ -195,7 +195,7 @@ def get_summary(
 def get_test_kits(
     type: str | None = None,
     name: str | None = None,
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_session),
 ):
     if type is not None and name is not None:
         raise HTTPException(

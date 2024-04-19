@@ -12,10 +12,10 @@ from .helpers import save_random_aquarium, save_random_user
 def test_can_get_summary_for_all_types(test_db):
     user = save_random_user(test_db)
     aquarium = save_random_aquarium(test_db, user.id)
-    param_1 = params.create(test_db, user.id, aquarium.id, "alkalinity", 9.5)
-    param_2 = params.create(test_db, user.id, aquarium.id, "alkalinity", 9.0)
-    param_3 = params.create(test_db, user.id, aquarium.id, "ph", 8.2)
-    param_4 = params.create(test_db, user.id, aquarium.id, "magnesium", 1200)
+    params.create(test_db, user.id, aquarium.id, "alkalinity", 9.5)
+    params.create(test_db, user.id, aquarium.id, "alkalinity", 9.0)
+    params.create(test_db, user.id, aquarium.id, "ph", 8.2)
+    params.create(test_db, user.id, aquarium.id, "magnesium", 1200)
 
     info = get_for_all(test_db, user.id)
     for type in ["alkalinity", "ph", "magnesium"]:
