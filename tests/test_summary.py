@@ -6,12 +6,11 @@ from logreef.summary import get_by_type, get_for_all
 from logreef.persistence.database import delete_from_db
 from logreef.persistence import params
 from logreef.config import TestKits
-from .helpers import save_random_aquarium, save_random_user
+from .helpers import save_random_aquarium, save_random_user, save_random_user_and_aquarium
 
 
 def test_can_get_summary_for_all_types(test_db):
-    user = save_random_user(test_db)
-    aquarium = save_random_aquarium(test_db, user.id)
+    user, aquarium = save_random_user_and_aquarium(test_db)
     params.create(test_db, user.id, aquarium.id, "alkalinity", 9.5)
     params.create(test_db, user.id, aquarium.id, "alkalinity", 9.0)
     params.create(test_db, user.id, aquarium.id, "ph", 8.2)

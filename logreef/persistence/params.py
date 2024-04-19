@@ -95,20 +95,6 @@ def create(
     return db_value
 
 
-def get_count_by_type_last_n_days(
-    db: Session, user_id: int, param_type: str, n_days: int
-) -> int:
-    now = datetime.now(UTC).replace(tzinfo=None)
-    raw_query = (
-        db.query(models.ParamValue)
-        .join(models.ParamType)
-        .where(models.ParamValue.user_id == user_id)
-        .where(models.ParamType.name == param_type)
-        .where(models.ParamValue.timestamp >= now - timedelta(days=n_days))
-    )
-    return raw_query.count()
-
-
 def get_stats_by_type_last_n_days(user_id: int, param_type: str, n_days: int):
     with Database().get_engine().connect() as connection:
         sql = text(
