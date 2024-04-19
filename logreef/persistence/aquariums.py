@@ -1,6 +1,7 @@
 import datetime
 
 from sqlalchemy.orm import Session
+from sqlalchemy import select
 
 from logreef.persistence import models
 from logreef.persistence.database import add_to_db
@@ -23,6 +24,13 @@ def get_by_name(db: Session, user_id: int, name: str):
         .filter(models.Aquarium.name == name)
         .first()
     )
+
+
+def get_by_user(db: Session, user_id: int) -> list[models.Aquarium]:
+    result = db.execute(
+        select(models.Aquarium).where(models.Aquarium.user_id == user_id)
+    )
+    return [row[0] for row in result]
 
 
 def get_all(db: Session, user_id: int) -> list[models.Aquarium]:

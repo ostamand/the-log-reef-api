@@ -1,8 +1,19 @@
-from .helpers import get_random_string
+from .helpers import get_random_string, save_random_user_and_aquarium
 
 from logreef.persistence import users
 from logreef.persistence import aquariums
 from logreef.persistence.database import delete_from_db
+
+
+def test_get_by_username(test_db):
+    user, aquarium = save_random_user_and_aquarium(test_db)
+
+    user_aquariums = aquariums.get_by_user(test_db, user.id)
+
+    assert len(user_aquariums) == 1
+    assert user_aquariums[0].name == aquarium.name
+
+    delete_from_db(test_db, user)
 
 
 def test_create_aquarium(test_db):
