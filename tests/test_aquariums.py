@@ -24,7 +24,6 @@ def test_create_aquarium(test_db):
 
     # delete test user from db
     delete_from_db(test_db, user)
-    delete_from_db(test_db, aquarium)
 
     # check if user still exists
     user_deleted = users.get_by_username(test_db, username)

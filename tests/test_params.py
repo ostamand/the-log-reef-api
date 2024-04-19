@@ -27,7 +27,6 @@ def test_create_value(test_db):
     assert len(latestValue) == 0
 
     delete_from_db(test_db, user)
-    delete_from_db(test_db, aquarium)
 
 
 def test_can_get_param_type(test_db):
@@ -64,10 +63,6 @@ def test_can_get_param_by_type(test_db):
     assert len(values) == 2
 
     delete_from_db(test_db, user)
-    delete_from_db(test_db, aquarium)
-    delete_from_db(test_db, param_1)
-    delete_from_db(test_db, param_2)
-    delete_from_db(test_db, param_3)
 
 
 def test_can_filter_by_user(test_db):
@@ -100,11 +95,7 @@ def test_can_filter_by_user(test_db):
     assert len(values) == 0
 
     delete_from_db(test_db, user_1)
-    delete_from_db(test_db, aquarium_1)
     delete_from_db(test_db, user_2)
-    delete_from_db(test_db, aquarium_2)
-    delete_from_db(test_db, param_1)
-    delete_from_db(test_db, param_2)
 
 
 def test_can_save_param_with_test_kit(test_db):
@@ -128,8 +119,6 @@ def test_can_save_param_with_test_kit(test_db):
     assert last_value[0].value == value
 
     delete_from_db(test_db, user)
-    delete_from_db(test_db, aquarium)
-    delete_from_db(test_db, param)
 
 
 def test_can_save_param_with_convert(test_db):
@@ -150,5 +139,3 @@ def test_can_save_param_with_convert(test_db):
     assert value == 7.7
 
     delete_from_db(test_db, user)
-    delete_from_db(test_db, aquarium)
-    delete_from_db(test_db, param)

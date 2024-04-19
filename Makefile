@@ -27,7 +27,7 @@ run:
 	docker run -it -p 80:80 logreef-api
 
 test:
-	pytest -s
+	docker compose run --build --rm test pytest -s
 
 deploy:
 	./scripts/deploy.sh

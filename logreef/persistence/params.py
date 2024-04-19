@@ -1,7 +1,7 @@
 from datetime import datetime, timezone, UTC, timedelta
 
 from sqlalchemy.orm import Session
-from sqlalchemy import text
+from sqlalchemy import text, select, func
 
 from logreef.persistence import models
 from logreef.persistence import aquariums
@@ -107,6 +107,19 @@ def get_count_by_type_last_n_days(
         .where(models.ParamValue.timestamp >= now - timedelta(days=n_days))
     )
     return raw_query.count()
+
+
+def get_stats_by_type_last_n_days(
+    db: Session, user_id: int, param_type: str, n_days: int
+):
+    now = datetime.now(UTC).replace(tzinfo=None)
+    smtp = (
+        select(func.count(models.ParamValue.id).label("count"))
+        .join(models.ParamType)
+        .where(models.ParamValue.user_id == user_id)
+        .where(models.ParamType.name == param_type)
+        .where(models.ParamValue.timestamp >= now - timedelta(days=n_days))
+    )
 
 
 def get_by_type(

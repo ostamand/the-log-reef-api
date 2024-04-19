@@ -25,11 +25,6 @@ def test_can_get_summary_for_all_types(test_db):
     assert len(info["alkalinity"]["values"]) == 2
 
     delete_from_db(test_db, user)
-    delete_from_db(test_db, aquarium)
-    delete_from_db(test_db, param_1)
-    delete_from_db(test_db, param_2)
-    delete_from_db(test_db, param_3)
-    delete_from_db(test_db, param_4)
 
 
 def test_can_get_summary_for_type(test_db):
@@ -75,5 +70,3 @@ def test_can_get_summary_for_type(test_db):
     assert summary["count_last_week"] == 1
 
     delete_from_db(test_db, user)
-    delete_from_db(test_db, aquarium)
-    delete_from_db(test_db, param_2)
