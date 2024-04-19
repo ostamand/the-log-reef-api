@@ -4,16 +4,9 @@ from sqlalchemy.orm import scoped_session, sessionmaker, Session
 
 from logreef.config import get_config, ConfigAPI
 
-# db_url = get_config(ConfigAPI.DB_URL)
 
-# engine = create_engine(db_url)  # connect_args={"check_same_thread": False}
-
-# SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-# Base = declarative_base()
-
-# Base.metadata.create_all(bind=engine)
 Base = declarative_base()
+
 
 class Database:
 
@@ -25,31 +18,33 @@ class Database:
     def get_session(self):
         if self.session is None:
             self.engine = self.get_engine()
-            self.session = scoped_session(sessionmaker(autocommit=False, autoflush=False, bind=self.engine))
+            self.session = scoped_session(
+                sessionmaker(autocommit=False, autoflush=False, bind=self.engine)
+            )
         return self.session()
-            
+
     def get_engine(self):
         if self.engine is None:
-            self.engine = create_engine(self.db_url) 
+            self.engine = create_engine(self.db_url)
             Base.metadata.create_all(bind=self.engine)
         return self.engine
 
 
-def get_db():
-    db = Database().get_session()
+def get_session():
+    session = Database().get_session()
     try:
-        yield db
+        yield session
     finally:
-        db.close()
+        session.close()
 
 
-def add_to_db(db: Session, model):
-    db.add(model)
-    db.commit()
-    db.refresh(model)
+def add_to_db(session: Session, model):
+    session.add(model)
+    session.commit()
+    session.refresh(model)
     return model
 
 
-def delete_from_db(db: Session, model):
-    db.delete(model)
-    db.commit()
+def delete_from_db(session: Session, model):
+    session.delete(model)
+    session.commit()

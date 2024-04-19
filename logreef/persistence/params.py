@@ -1,11 +1,11 @@
 from datetime import datetime, timezone, UTC, timedelta
 
 from sqlalchemy.orm import Session
-from sqlalchemy import text
+from sqlalchemy import text, select, func
 
 from logreef.persistence import models
 from logreef.persistence import aquariums
-from logreef.persistence.database import Database
+from logreef.persistence.database import Database, delete_from_db
 from logreef.config import (
     TestKits,
     ParamTypes,
@@ -95,18 +95,28 @@ def create(
     return db_value
 
 
-def get_count_by_type_last_n_days(
-    db: Session, user_id: int, param_type: str, n_days: int
-) -> int:
-    now = datetime.now(UTC).replace(tzinfo=None)
-    raw_query = (
-        db.query(models.ParamValue)
-        .join(models.ParamType)
-        .where(models.ParamValue.user_id == user_id)
-        .where(models.ParamType.name == param_type)
-        .where(models.ParamValue.timestamp >= now - timedelta(days=n_days))
-    )
-    return raw_query.count()
+def get_stats_by_type_last_n_days(user_id: int, param_type: str, n_days: int):
+    with Database().get_engine().connect() as connection:
+        sql = text(
+            """
+        SELECT COUNT(1) as count, AVG(value) as avg, STDDEV(value) as std
+        FROM param_values
+        WHERE user_id = :user_id
+        AND param_type_name = :param_type
+        AND param_values.timestamp > NOW()::DATE - :n_days;    
+        """
+        )
+        cols = ["count", "avg", "std"]
+        result = connection.execute(
+            sql, {"param_type": param_type, "user_id": user_id, "n_days": n_days}
+        )
+        data = [row for row in result]
+        if len(data) > 0:
+            return {
+                key: float(value) if value is not None else value
+                for key, value in zip(cols, data[0])
+            }
+        return {}
 
 
 def get_by_type(
@@ -136,8 +146,8 @@ def get_by_type(
     return raw_query.all()
 
 
-def get_by_id(user_id: int, param_id: int):
-    with engine.connect() as con:
+def get_info_by_id(user_id: int, param_id: int):
+    with Database().get_engine().connect() as con:
         sql = text(
             """
         SELECT v.id, v.param_type_name, t.name AS testkit_name, t.display_name AS testkit_display_name, t.display_unit as testkit_display_unit, v.value, v.timestamp
@@ -161,6 +171,17 @@ def get_by_id(user_id: int, param_id: int):
         if len(data) == 1:
             return {cols[i]: item for i, item in enumerate(data[0])}
         return {}
+
+
+def delete_by_id(db: Session, user_id: int, param_id: int):
+    rows = (
+        db.query(models.ParamValue)
+        .filter(models.ParamValue.user_id == user_id)
+        .filter(models.ParamValue.id == param_id)
+        .delete()
+    )
+    db.commit()
+    return rows
 
 
 def update_by_id(db: Session, user_id: int, param_id: int, updatedValue: float):

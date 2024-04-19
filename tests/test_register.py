@@ -38,7 +38,6 @@ def test_can_create_user_with_valid_key(test_db):
 
     delete_from_db(test_db, register_code)
     delete_from_db(test_db, user)
-    delete_from_db(test_db, aquarium)
 
 
 def test_register_code_not_valid(test_db):

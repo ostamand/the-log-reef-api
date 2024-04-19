@@ -30,3 +30,9 @@ def save_random_user(db: Session) -> models.User:
 def save_random_aquarium(db: Session, user_id: int) -> models.Aquarium:
     name = get_random_string(10)
     return aquariums.create(db, user_id, name)
+
+
+def save_random_user_and_aquarium(db: Session) -> tuple[models.User, models.Aquarium]:
+    user = save_random_user(db)
+    aquarium = save_random_aquarium(db, user.id)
+    return user, aquarium
