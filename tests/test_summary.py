@@ -48,7 +48,7 @@ def test_can_get_summary_for_type(test_db):
         user.id,
         param_type_name,
     )
-    keys = ["values", "timestamps", "time_since_secs", "count_last_week"]
+    keys = ["values", "timestamps", "time_since_secs", "count_last_week", "avg_last_week", "std_last_week"]
     for key in keys:
         assert key in summary
 

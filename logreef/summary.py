@@ -28,6 +28,8 @@ def get_by_type(db: Session, user_id: int, param_type: str) -> dict[str, any]:
         "timestamps": [],
         "time_since_secs": [],
         "count_last_week": None,
+        "avg_last_week": None,
+        "std_last_week": None 
     }
 
     # get last two info
@@ -47,6 +49,6 @@ def get_by_type(db: Session, user_id: int, param_type: str) -> dict[str, any]:
 
     summary["count_last_week"] = results["count"]
     summary["avg_last_week"] = results["avg"]
-    summary["std_last_week"] = results["avg"]
+    summary["std_last_week"] = results["std"]
 
     return summary

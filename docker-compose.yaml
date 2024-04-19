@@ -17,3 +17,12 @@ services:
       - db
     environment:
       - db_url=postgresql://root:secret@db:5432/logreef
+  server:
+    build:
+      dockerfile: Dockerfile
+    depends_on:
+      - db
+    environment:
+      - db_url=postgresql://root:secret@db:5432/logreef
+    ports:
+      - "8000:80"
