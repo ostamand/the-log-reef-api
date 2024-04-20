@@ -64,7 +64,6 @@ def create_user_with_code(
 @app.get("/register")
 def check_register(code: str | None = None, db: Session = Depends(get_session)):
     response = {}
-    print(code)
     if code is not None:
         if register_code_is_valid(db, code):
             response["code"] = True
