@@ -75,7 +75,7 @@ def test_create_value(test_db):
 
     delete_from_db(test_db, paramValue)
 
-    latestValue = params.get_by_type(test_db, user.id, param_type, 1)
+    latestValue = params.get_by_type(test_db, user.id, param_type, limit=1)
 
     assert len(latestValue) == 0
 
@@ -190,5 +190,46 @@ def test_can_save_param_with_convert(test_db):
 
     value = math.ceil(last_value[0].value * 10) / 10
     assert value == 7.7
+
+    delete_from_db(test_db, user)
+
+
+def test_get_params_by_days(test_db):
+    user, aquarium = save_random_user_and_aquarium(test_db)
+
+    now_utc = datetime.now(UTC)
+
+    params.create(test_db, user.id, aquarium.id, ParamTypes.ALKALINITY, 1.0, now_utc)
+    params.create(
+        test_db,
+        user.id,
+        aquarium.id,
+        ParamTypes.ALKALINITY,
+        1.0,
+        now_utc - timedelta(days=1),
+    )
+    params.create(
+        test_db,
+        user.id,
+        aquarium.id,
+        ParamTypes.ALKALINITY,
+        1.0,
+        now_utc - timedelta(days=3),
+    )
+    params.create(
+        test_db,
+        user.id,
+        aquarium.id,
+        ParamTypes.ALKALINITY,
+        1.0,
+        now_utc - timedelta(days=8),
+    )
+
+    assert len(params.get_by_type(test_db, user.id, ParamTypes.ALKALINITY)) == 4
+    assert len(params.get_by_type(test_db, user.id, ParamTypes.ALKALINITY, days=1)) == 1
+    assert len(params.get_by_type(test_db, user.id, ParamTypes.ALKALINITY, days=2)) == 2
+    assert len(params.get_by_type(test_db, user.id, ParamTypes.ALKALINITY, days=4)) == 3
+    assert len(params.get_by_type(test_db, user.id, ParamTypes.ALKALINITY, days=7)) == 3
+    assert len(params.get_by_type(test_db, user.id, ParamTypes.ALKALINITY, days=9)) == 4
 
     delete_from_db(test_db, user)

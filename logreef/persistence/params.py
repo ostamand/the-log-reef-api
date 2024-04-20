@@ -1,11 +1,11 @@
 from datetime import datetime, timezone, UTC, timedelta
 
 from sqlalchemy.orm import Session
-from sqlalchemy import text, select, func
+from sqlalchemy import text
 
 from logreef.persistence import models
 from logreef.persistence import aquariums
-from logreef.persistence.database import Database, delete_from_db
+from logreef.persistence.database import Database
 from logreef.config import (
     TestKits,
     ParamTypes,
@@ -124,6 +124,7 @@ def get_by_type(
     db: Session,
     user_id: int,
     param_type: str | ParamTypes,
+    days: int | None = None,
     limit: int | None = None,
     offset: int | None = None,
 ):
@@ -135,8 +136,15 @@ def get_by_type(
         .join(models.ParamType)
         .where(models.ParamValue.user_id == user_id)
         .where(models.ParamType.name == param_type)
-        .order_by(models.ParamValue.timestamp.desc())
     )
+
+    if days is not None and days > 0:
+        utc_now = datetime.now(UTC)
+        raw_query = raw_query.where(
+            models.ParamValue.timestamp > utc_now - timedelta(days=days)
+        )
+
+    raw_query = raw_query.order_by(models.ParamValue.timestamp.desc())
 
     if limit is not None:
         raw_query = raw_query.limit(limit)

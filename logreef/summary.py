@@ -33,7 +33,7 @@ def get_by_type(db: Session, user_id: int, param_type: str) -> dict[str, any]:
     }
 
     # get last two info
-    last_params = params.get_by_type(db, user_id, param_type, 2)
+    last_params = params.get_by_type(db, user_id, param_type, limit=2)
 
     for param in last_params:
         summary["values"].append(float(param.value))

@@ -137,10 +137,11 @@ def get_params(
     current_user: Annotated[schemas.User, Depends(get_current_user)],
     db: Session = Depends(get_session),
     type: str | None = None,
-    limit: int = 200,
+    days: int | None = None,
+    limit: int | None = None,
     offset: int = 0,
 ):
-    return params.get_by_type(db, current_user.id, type, limit, offset)
+    return params.get_by_type(db, current_user.id, type, days, limit, offset)
 
 
 @app.delete("/params/{param_id}")
