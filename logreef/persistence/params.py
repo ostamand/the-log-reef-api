@@ -1,11 +1,11 @@
 from datetime import datetime, timezone, UTC, timedelta
 
 from sqlalchemy.orm import Session
-from sqlalchemy import text, select, func
+from sqlalchemy import text
 
 from logreef.persistence import models
 from logreef.persistence import aquariums
-from logreef.persistence.database import Database, delete_from_db
+from logreef.persistence.database import Database
 from logreef.config import (
     TestKits,
     ParamTypes,
@@ -95,34 +95,36 @@ def create(
     return db_value
 
 
-def get_stats_by_type_last_n_days(user_id: int, param_type: str, n_days: int):
-    with Database().get_engine().connect() as connection:
-        sql = text(
-            """
+def get_stats_by_type_last_n_days(
+    db: Session, user_id: int, param_type: str, n_days: int
+):
+    sql = text(
+        """
         SELECT COUNT(1) as count, AVG(value) as avg, STDDEV(value) as std
         FROM param_values
         WHERE user_id = :user_id
         AND param_type_name = :param_type
         AND param_values.timestamp > NOW()::DATE - :n_days;    
         """
-        )
-        cols = ["count", "avg", "std"]
-        result = connection.execute(
-            sql, {"param_type": param_type, "user_id": user_id, "n_days": n_days}
-        )
-        data = [row for row in result]
-        if len(data) > 0:
-            return {
-                key: float(value) if value is not None else value
-                for key, value in zip(cols, data[0])
-            }
-        return {}
+    )
+    cols = ["count", "avg", "std"]
+    result = db.execute(
+        sql, {"param_type": param_type, "user_id": user_id, "n_days": n_days}
+    )
+    data = [row for row in result]
+    if len(data) > 0:
+        return {
+            key: float(value) if value is not None else value
+            for key, value in zip(cols, data[0])
+        }
+    return {}
 
 
 def get_by_type(
     db: Session,
     user_id: int,
     param_type: str | ParamTypes,
+    days: int | None = None,
     limit: int | None = None,
     offset: int | None = None,
 ):
@@ -134,8 +136,15 @@ def get_by_type(
         .join(models.ParamType)
         .where(models.ParamValue.user_id == user_id)
         .where(models.ParamType.name == param_type)
-        .order_by(models.ParamValue.timestamp.desc())
     )
+
+    if days is not None and days > 0:
+        utc_now = datetime.now(UTC)
+        raw_query = raw_query.where(
+            models.ParamValue.timestamp > utc_now - timedelta(days=days)
+        )
+
+    raw_query = raw_query.order_by(models.ParamValue.timestamp.desc())
 
     if limit is not None:
         raw_query = raw_query.limit(limit)

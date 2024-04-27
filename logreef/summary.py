@@ -29,11 +29,11 @@ def get_by_type(db: Session, user_id: int, param_type: str) -> dict[str, any]:
         "time_since_secs": [],
         "count_last_week": None,
         "avg_last_week": None,
-        "std_last_week": None 
+        "std_last_week": None,
     }
 
     # get last two info
-    last_params = params.get_by_type(db, user_id, param_type, 2)
+    last_params = params.get_by_type(db, user_id, param_type, limit=2)
 
     for param in last_params:
         summary["values"].append(float(param.value))
@@ -45,7 +45,7 @@ def get_by_type(db: Session, user_id: int, param_type: str) -> dict[str, any]:
         summary["time_since_secs"].append((now - ts).total_seconds())
 
     # get last week count
-    results = params.get_stats_by_type_last_n_days(user_id, param_type, 7)
+    results = params.get_stats_by_type_last_n_days(db, user_id, param_type, 7)
 
     summary["count_last_week"] = results["count"]
     summary["avg_last_week"] = results["avg"]
