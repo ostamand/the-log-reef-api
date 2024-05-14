@@ -53,7 +53,6 @@ CREATE TABLE param_values (
 	timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-
 INSERT INTO param_types (name, unit)
 VALUES 
 	('alkalinity', 'dkh'),
@@ -71,4 +70,6 @@ VALUES
 	('generic_phosphate_ppm', 'phosphate', 'Default ppm', 'ppm', true),
 	('generic_nitrate_ppm', 'nitrate', 'Default ppm', 'ppm', true),
 	('generic_ph', 'ph', 'Default pH', 'pH', true),
-	('salifert_alkalinity', 'alkalinity', 'Salifert KH/Alk', 'mL', false)
+	('salifert_alkalinity', 'alkalinity', 'Salifert KH/Alk', 'mL', false),
+	('hanna_phosphorus_ulr', 'phosphate', 'Hanna Phosphorus ULR', 'ppb', false),
+	('hanna_nitrate', 'nitrate', 'Hanna Nitrate', 'ppm', false);
