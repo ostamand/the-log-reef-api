@@ -33,7 +33,7 @@ converters = {
     },
     ParamTypes.NITRATE: {
         TestKits.GENERIC_NITRATE_PPM: no_convert,
-        TestKits.HANNA_NITRATE: no_convert
+        TestKits.HANNA_NITRATE: no_convert,
     },
 }
 
