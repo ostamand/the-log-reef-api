@@ -127,6 +127,7 @@ def create_param(
         paramCreate.param_type_name,
         paramCreate.value,
         test_kit=paramCreate.test_kit_name,
+        timestamp=paramCreate.timestamp,
         commit=commit,
     )
 
