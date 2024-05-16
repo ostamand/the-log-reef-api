@@ -3,19 +3,22 @@ from datetime import datetime, timezone, timedelta
 from sqlalchemy.orm import Session
 
 from logreef.persistence import models
+from logreef.persistence import aquariums
 
 
-def get_water_changed(
-    db: Session, user_id: int, aquarium_id: int, days: int | None = None
-):
-    raw_query = db.query(models.Events).where(models.Events.user_id == user_id).where(
-        models.Events.aquarium_id == aquarium_id
-    ).where(models.Events.water_change_id is not None)
+def get_water_changes(
+    db: Session, user_id: int, aquarium_id: int | None = None, days: int | None = None
+) -> list[models.Events]:
+    raw_query = (
+        db.query(models.Events)
+        .where(models.Events.user_id == user_id)
+        .where(models.Events.water_change_id is not None)
+    )
 
     if days is not None and days > 0:
         ts = datetime.now(timezone.utc) - timedelta(days=days)
         raw_query = raw_query.where(models.Events.timestamp > ts)
-    
+
     raw_query = raw_query.order_by(models.Events.timestamp.desc())
 
     return raw_query.all()
@@ -24,12 +27,18 @@ def get_water_changed(
 def create_water_change(
     db: Session,
     user_id: int,
-    aquarium_id: int,
-    quantity: float,
+    aquarium: int | str,
     unit_name: str,
-    description: str,
+    quantity: float | None = None,
+    description: str | None = None,
     timestamp: datetime | None = None,
 ):
+    aquarium_id: int
+    if type(aquarium) is str:
+        aquarium_id = aquariums.get_by_name(db, user_id, aquarium).id
+    elif type(aquarium) is int:
+        aquarium_id = aquarium
+
     if not timestamp:
         timestamp = datetime.now(timezone.utc)
 

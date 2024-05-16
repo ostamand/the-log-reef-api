@@ -22,8 +22,8 @@ def test_can_create_new_water_change(test_db):
     assert event.water_change.unit_name == "gal"
     assert event.water_change.description == test_description
 
-    events_in_db = events.get_water_changed(
-        test_db, 
+    events_in_db = events.get_water_changes(
+        test_db,
         user.id,
         aquarium.id,
     )

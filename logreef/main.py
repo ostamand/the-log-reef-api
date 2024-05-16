@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
 from logreef import schemas, __version__
-from logreef.persistence import users, params, aquariums, testkits
+from logreef.persistence import users, params, aquariums, testkits, events
 from logreef import summary
 from logreef.persistence.database import get_session
 from logreef.security import create_access_token
@@ -46,15 +46,15 @@ async def read_users_me(
 
 @app.post("/register", response_model=schemas.User)
 def create_user_with_code(
-    userData: schemas.RegisterUser, db: Session = Depends(get_session)
+    data: schemas.RegisterUser, db: Session = Depends(get_session)
 ):
     ok, data = register_user(
         db,
-        username=userData.username,
-        password=userData.password,
-        register_code=userData.register_access_code,
-        email=userData.email,
-        fullname=userData.fullname,
+        username=data.username,
+        password=data.password,
+        register_code=data.register_access_code,
+        email=data.email,
+        fullname=data.fullname,
     )
     if not ok:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, detail=data["detail"])
@@ -75,16 +75,16 @@ def check_register(code: str | None = None, db: Session = Depends(get_session)):
 @app.post("/aquariums")
 def create_aquarium(
     current_user: Annotated[schemas.User, Depends(get_current_user)],
-    aquariumCreate: schemas.AquariumCreate,
+    data: schemas.AquariumCreate,
     db: Session = Depends(get_session),
 ):
-    aquarium_db = aquariums.get_by_name(db, current_user.id, aquariumCreate.name)
+    aquarium_db = aquariums.get_by_name(db, current_user.id, data.name)
     if aquarium_db is not None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Aquarium '{aquariumCreate.name}' already exists",
+            detail=f"Aquarium '{data.name}' already exists",
         )
-    return aquariums.create(db, current_user.id, aquariumCreate.name)
+    return aquariums.create(db, current_user.id, data.name)
 
 
 @app.get("/aquariums")
@@ -114,7 +114,7 @@ def login(
 @app.post("/params")
 def create_param(
     current_user: Annotated[schemas.User, Depends(get_current_user)],
-    paramCreate: schemas.ParamCreate,
+    data: schemas.ParamCreate,
     db: Session = Depends(get_session),
     commit: bool = True,
 ):
@@ -123,11 +123,11 @@ def create_param(
     return params.create(
         db,
         current_user.id,
-        paramCreate.aquarium,
-        paramCreate.param_type_name,
-        paramCreate.value,
-        test_kit=paramCreate.test_kit_name,
-        timestamp=paramCreate.timestamp,
+        data.aquarium,
+        data.param_type_name,
+        data.value,
+        test_kit=data.test_kit_name,
+        timestamp=data.timestamp,
         commit=commit,
     )
 
@@ -207,3 +207,31 @@ def get_test_kits(
         return testkits.get_all_by_type(db, type)
     elif name is not None:
         return testkits.get_by_name(db, name)
+
+
+@app.post("/events/waterchange", response_model=schemas.EventWaterChange)
+def create_water_change(
+    current_user: Annotated[schemas.User, Depends(get_current_user)],
+    data: schemas.WaterChangeCreate,
+    db: Session = Depends(get_session),
+):
+    event_db = events.create_water_change(
+        db,
+        current_user.id,
+        data.aquarium,
+        data.unit_name,
+        data.quantity,
+        data.description,
+        data.timestamp,
+    )
+    return schemas.EventWaterChange.convert(event_db)
+
+
+@app.get("/events/waterchange/")
+def get_water_changes(
+    current_user: Annotated[schemas.User, Depends(get_current_user)],
+    db: Session = Depends(get_session),
+    days: int | None = None,
+):
+    water_changes_db = events.get_water_changes(db, current_user.id, days=days)
+    return list(map(lambda x: schemas.EventWaterChange.convert(x), water_changes_db))
