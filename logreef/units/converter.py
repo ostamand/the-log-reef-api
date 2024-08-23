@@ -2,17 +2,11 @@ from logreef.config import ParamTypes, TestKits
 
 
 def convert_alkalinity_salifert_alk(value: float):
-    # 0.0mL = 15.7
-    # 0.98mL = 0.0
-    # y = (15.7 / 0.98) x - 15.7
-    # y(0.98) = -15.7 / 0.98 * 0.98  + 15.7  = 0
-    # y(0.0) = -15.7 / 0.98 * 0 + 15.7 = 0
-    # y(0.5) = -15.7 / 0.98 * 0.5 + 15.7 = 7.689795918367347
     return -15.7 / 0.98 * value + 15.7
 
 
 def convert_hanna_phosphorus_ulr(value: float):
-    return value
+    return value * 3.066 / 1000
 
 
 def no_convert(value: float):
@@ -39,6 +33,7 @@ converters = {
     },
     ParamTypes.NITRATE: {
         TestKits.GENERIC_NITRATE_PPM: no_convert,
+        TestKits.HANNA_NITRATE: no_convert,
     },
 }
 

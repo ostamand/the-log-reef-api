@@ -4,6 +4,12 @@ DROP TABLE IF EXISTS param_values;
 DROP TABLE IF EXISTS aquariums;
 DROP TABLE IF EXISTS test_kits;
 DROP TABLE IF EXISTS register_access_codes;
+DROP TABLE IF EXISTS units;
+DROP TABLE IF EXISTS additives;
+DROP TABLE IF EXISTS event_dosings;
+DROP TABLE IF EXISTS event_miscs;
+DROP TABLE IF EXISTS event_water_changes;
+DROP TABLE IF EXISTS events;
 
 CREATE TABLE users (
 	id SERIAL PRIMARY KEY,
@@ -53,6 +59,59 @@ CREATE TABLE param_values (
 	timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE units (
+	name VARCHAR(255) PRIMARY KEY,
+	display_name VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE additives (
+	name VARCHAR(255) PRIMARY KEY,
+	display_name VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE event_dosings (
+	id SERIAL PRIMARY KEY,
+	additive_name VARCHAR(255) REFERENCES additives(name) ON DELETE CASCADE,
+	quantity NUMERIC,
+	description VARCHAR(255),
+	unit_name VARCHAR(255) REFERENCES units(name) ON DELETE CASCADE
+);
+
+CREATE TABLE event_miscs (
+	id SERIAL PRIMARY KEY,
+	description VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE event_water_changes (
+	id SERIAL PRIMARY KEY,
+	quantity NUMERIC,
+	description VARCHAR(255),
+	unit_name VARCHAR(255) REFERENCES units(name) ON DELETE CASCADE
+);
+
+CREATE TABLE events (
+	id SERIAL PRIMARY KEY,
+	user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+	aquarium_id INTEGER NOT NULL REFERENCES aquariums(id) ON DELETE CASCADE,
+	dosing_id INTEGER REFERENCES event_dosings(id) ON DELETE CASCADE,
+	water_change_id INTEGER REFERENCES event_water_changes(id) ON DELETE CASCADE,
+	misc_id INTEGER REFERENCES event_miscs(id) ON DELETE CASCADE,
+	timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+INSERT INTO units (name, display_name)
+VALUES
+	('mL', 'milliliters'),
+	('L', 'liters'),
+	('gal', 'gallons'),
+	('ppm', 'parts per million'),
+	('ppb', 'parts per billion'),
+	('dkh', 'dKH');
+
+INSERT INTO additives (name, display_name)
+VALUES
+	('kalkwasser', 'Kalkwasser'),
+	('tropic-marin-np-bacto-balance', 'Tropic Marin NP-Bacto-Balance');
 
 INSERT INTO param_types (name, unit)
 VALUES 
@@ -71,4 +130,6 @@ VALUES
 	('generic_phosphate_ppm', 'phosphate', 'Default ppm', 'ppm', true),
 	('generic_nitrate_ppm', 'nitrate', 'Default ppm', 'ppm', true),
 	('generic_ph', 'ph', 'Default pH', 'pH', true),
-	('salifert_alkalinity', 'alkalinity', 'Salifert KH/Alk', 'mL', false)
+	('salifert_alkalinity', 'alkalinity', 'Salifert KH/Alk', 'mL', false),
+	('hanna_phosphorus_ulr', 'phosphate', 'Hanna Phosphorus ULR', 'ppb', false),
+	('hanna_nitrate', 'nitrate', 'Hanna Nitrate', 'ppm', false);

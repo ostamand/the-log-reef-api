@@ -21,6 +21,7 @@ class TestKits(Enum):
     GENERIC_PH = "generic_ph"
     SALIFERT_ALKALINITY = "salifert_alkalinity"
     HANNA_PHOSPHORUS_ULR = "hanna_phosphorus_ulr"
+    HANNA_NITRATE = "hanna_nitrate"
 
 
 class ConfigAPI(Enum):

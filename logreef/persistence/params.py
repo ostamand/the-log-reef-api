@@ -1,4 +1,4 @@
-from datetime import datetime, timezone, UTC, timedelta
+from datetime import datetime, timezone, timedelta
 
 from sqlalchemy.orm import Session
 from sqlalchemy import text
@@ -139,7 +139,7 @@ def get_by_type(
     )
 
     if days is not None and days > 0:
-        utc_now = datetime.now(UTC)
+        utc_now = datetime.utcnow()
         raw_query = raw_query.where(
             models.ParamValue.timestamp > utc_now - timedelta(days=days)
         )

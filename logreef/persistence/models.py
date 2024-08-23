@@ -74,3 +74,72 @@ class ParamValue(Base):
     test_kit: Mapped[TestKit] = relationship(
         "TestKit", foreign_keys="ParamValue.test_kit_name"
     )  # lazy='joined'
+
+
+class Units(Base):
+    __tablename__ = "units"
+
+    name = mapped_column(String, primary_key=True)
+    display_name = mapped_column(String, nullable=False)
+
+
+class Additives(Base):
+    __tablename__ = "additives"
+
+    name = mapped_column(String, primary_key=True)
+    display_name = mapped_column(String, nullable=False)
+
+
+class EventDosings(Base):
+    __tablename__ = "event_dosings"
+
+    id = mapped_column(Integer, primary_key=True)
+    additive_name = mapped_column(String, ForeignKey(Additives.name))
+    quantity = mapped_column(Numeric, nullable=True)
+    description = mapped_column(String)
+    unit_name = mapped_column(String, ForeignKey(Units.name))
+
+    additive: Mapped[Additives] = relationship(
+        "Additives", foreign_keys="EventDosings.additive_name"
+    )
+    unit: Mapped[Units] = relationship("Units", foreign_keys="EventDosings.unit_name")
+
+
+class EventMiscs(Base):
+    __tablename__ = "event_miscs"
+
+    id = mapped_column(Integer, primary_key=True)
+    description = mapped_column(String, nullable=False)
+
+
+class EventWaterChanges(Base):
+    __tablename__ = "event_water_changes"
+
+    id = mapped_column(Integer, primary_key=True)
+    quantity = mapped_column(Numeric, nullable=True)
+    description = mapped_column(String)
+    unit_name = mapped_column(String, ForeignKey(Units.name))
+
+    unit: Mapped[Units] = relationship(
+        "Units", foreign_keys="EventWaterChanges.unit_name"
+    )
+
+
+class Events(Base):
+    __tablename__ = "events"
+
+    id = mapped_column(Integer, primary_key=True)
+    user_id = mapped_column(Integer, ForeignKey(User.id), nullable=True)
+    aquarium_id = mapped_column(Integer, ForeignKey(Aquarium.id))
+    dosing_id = mapped_column(Integer, ForeignKey(EventDosings.id))
+    water_change_id = mapped_column(Integer, ForeignKey(EventWaterChanges.id))
+    misc_id = mapped_column(Integer, ForeignKey(EventMiscs.id))
+    timestamp = mapped_column(DateTime, nullable=False)
+
+    dosing: Mapped[EventDosings] = relationship(
+        "EventDosings", foreign_keys="Events.dosing_id"
+    )
+    water_change: Mapped[EventWaterChanges] = relationship(
+        "EventWaterChanges", foreign_keys="Events.water_change_id"
+    )
+    misc: Mapped[EventMiscs] = relationship("EventMiscs", foreign_keys="Events.misc_id")

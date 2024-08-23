@@ -2,6 +2,8 @@ from datetime import datetime
 
 from pydantic import BaseModel
 
+from logreef.persistence import models
+
 
 class Aquarium(BaseModel):
     id: int
@@ -38,6 +40,48 @@ class ParamCreate(BaseModel):
     aquarium: int | str
     value: float
     timestamp: datetime | None = None
+
+
+class WaterChangeCreate(BaseModel):
+    aquarium: int | str
+    unit_name: str
+    quantity: float | None = None
+    description: str | None = None
+    timestamp: datetime | None = None
+
+
+class Unit(BaseModel):
+    name: str
+    display_name: str
+
+
+class WaterChange(BaseModel):
+    quantity: float | None
+    description: str | None
+    unit: Unit
+
+
+class EventWaterChange(BaseModel):
+    id: int
+    water_change_id: int
+    timestamp: datetime
+    detail: WaterChange
+
+    @staticmethod
+    def convert(data: models.Events):
+        return EventWaterChange(
+            id=data.id,
+            water_change_id=data.water_change_id,
+            timestamp=data.timestamp,
+            detail=WaterChange(
+                quantity=data.water_change.quantity,
+                description=data.water_change.description,
+                unit=Unit(
+                    name=data.water_change.unit.name,
+                    display_name=data.water_change.unit.display_name,
+                ),
+            ),
+        )
 
 
 class AquariumCreate(BaseModel):
