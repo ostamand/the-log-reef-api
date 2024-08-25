@@ -261,7 +261,7 @@ def test_can_update_note(test_db):
     assert original.param_type_name == ParamTypes.CALCIUM.value
 
     # update note
-    params.update_by_id(test_db, user.id, original.id, updatedNote=note_updated)
+    params.update_by_id(test_db, user.id, original.id, note=note_updated)
 
     # check updated param
     results = params.get_by_type(test_db, user.id, ParamTypes.CALCIUM)

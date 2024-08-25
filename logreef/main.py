@@ -168,17 +168,17 @@ def get_param_by_id(
     param_id: int,
     current_user: Annotated[schemas.User, Depends(get_current_user)],
 ):
-    return params.get_info_by_id(current_user.id, param_id)
+    return params.get_param_by_id(current_user.id, param_id)
 
 
 @app.put("/params/{param_id}")
 def update_param_by_id(
     param_id: int,
-    value: float,
     current_user: Annotated[schemas.User, Depends(get_current_user)],
+    data: schemas.ParamUpdate,
     db: Session = Depends(get_session),
 ):
-    return params.update_by_id(db, current_user.id, param_id, value)
+    return params.update_by_id(db, current_user.id, param_id, **data.model_dump())
 
 
 @app.get("/summary/")

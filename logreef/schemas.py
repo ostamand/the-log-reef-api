@@ -53,6 +53,25 @@ class ParamInfo(BaseModel):
     note: str | None
     timestamp: datetime
 
+    @classmethod
+    def get_fields(cls):
+        return [
+            "id",
+            "param_type_name",
+            "param_type_display_name",
+            "test_kit_name",
+            "test_kit_display_name",
+            "value",
+            "unit",
+            "timestamp",
+            "note",
+        ]
+
+
+class ParamUpdate(BaseModel):
+    value: float | None = None
+    note: str | None = None
+
 
 class WaterChangeCreate(BaseModel):
     aquarium: int | str

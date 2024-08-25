@@ -131,18 +131,7 @@ def get_by_type(
     limit: int | None = None,
     offset: int | None = None,
 ) -> list[schemas.ParamInfo]:
-    cols = [
-        "id",
-        "param_type_name",
-        "param_type_display_name",
-        "test_kit_name",
-        "test_kit_display_name",
-        "value",
-        "unit",
-        "timestamp",
-        "note",
-    ]
-
+    cols = schemas.ParamInfo.get_fields()
     query = """
     SELECT 
         p.id, 
@@ -188,31 +177,33 @@ def get_by_type(
         return out
 
 
-def get_info_by_id(user_id: int, param_id: int):
+def get_param_by_id(user_id: int, param_id: int) -> schemas.ParamInfo:
+    cols = schemas.ParamInfo.get_fields()
     with Database().get_engine().connect() as con:
         sql = text(
-            """
-        SELECT v.id, v.param_type_name, t.name AS testkit_name, t.display_name AS testkit_display_name, t.display_unit as testkit_display_unit, v.value, v.timestamp
+        """
+        SELECT 
+            v.id, 
+            v.param_type_name, 
+            param_types.display_name AS param_type_display_name,
+            t.name AS test_kit_name, 
+            t.display_name AS test_kit_display_name, 
+            v.value, 
+            param_types.unit AS unit,
+            v.timestamp, 
+            v.note
         FROM param_values AS v
-        JOIN test_kits AS t ON v.test_kit_name = t.name
+        LEFT JOIN test_kits AS t ON v.test_kit_name = t.name 
+        LEFT JOIN param_types ON v.param_type_name = param_types.name
         WHERE user_id = :user_id and id = :param_id
         LIMIT 1;
         """
         )
         result = con.execute(sql, {"param_id": param_id, "user_id": user_id})
-        cols = [
-            "id",
-            "param_type_name",
-            "testkit_name",
-            "testkit_display_name",
-            "testkit_display_unit",
-            "value",
-            "timestamp",
-        ]
         data = [row for row in result]
         if len(data) == 1:
-            return {cols[i]: item for i, item in enumerate(data[0])}
-        return {}
+            return schemas.ParamInfo(**{cols[i]: item for i, item in enumerate(data[0])})
+        return schemas.ParamInfo()
 
 
 def delete_by_id(db: Session, user_id: int, param_id: int):
@@ -230,14 +221,14 @@ def update_by_id(
     db: Session,
     user_id: int,
     param_id: int,
-    updatedValue: float | None = None,
-    updatedNote: str | None = None,
+    value: float | None = None,
+    note: str | None = None,
 ):
     updates = {}
-    if updatedValue is not None:
-        updates[models.ParamValue.value] = updatedValue
-    if updatedNote is not None:
-        updates[models.ParamValue.note] = updatedNote
+    if value is not None:
+        updates[models.ParamValue.value] = value
+    if note is not None:
+        updates[models.ParamValue.note] = note
 
     db.query(models.ParamValue).filter(models.ParamValue.user_id == user_id).filter(
         models.ParamValue.id == param_id
