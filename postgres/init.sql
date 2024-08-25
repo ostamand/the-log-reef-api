@@ -29,8 +29,9 @@ CREATE TABLE register_access_codes (
 );
 
 CREATE TABLE param_types (
-	name VARCHAR(255) PRIMARY KEY,
-	unit VARCHAR(255) NOT NULL
+	name VARCHAR(20) PRIMARY KEY,
+	unit VARCHAR(10) NOT NULL,
+	display_name VARCHAR(20)
 );
 
 CREATE TABLE test_kits (
@@ -56,6 +57,7 @@ CREATE TABLE param_values (
 	param_type_name VARCHAR(255) REFERENCES param_types(name) ON DELETE CASCADE,
 	test_kit_name VARCHAR(255) NOT NULL REFERENCES test_kits(name) ON DELETE CASCADE,
 	value NUMERIC NOT NULL,
+	note VARCHAR(255),
 	timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -113,14 +115,14 @@ VALUES
 	('kalkwasser', 'Kalkwasser'),
 	('tropic-marin-np-bacto-balance', 'Tropic Marin NP-Bacto-Balance');
 
-INSERT INTO param_types (name, unit)
+INSERT INTO param_types (name, unit, display_name)
 VALUES 
-	('alkalinity', 'dkh'),
-	('calcium', 'ppm'),
-	('magnesium', 'ppm'),
-	('phosphate', 'ppm'),
-	('nitrate', 'ppm'),
-	('ph', 'pH');
+	('alkalinity', 'dkh', 'Alkalinity'),
+	('calcium', 'ppm', 'Calcium'),
+	('magnesium', 'ppm', 'Magnesium'),
+	('phosphate', 'ppm', 'Phosphate'),
+	('nitrate', 'ppm', 'Nitrate'),
+	('ph', 'pH', 'pH');
 
 INSERT INTO test_kits (name, param_type_name, display_name, display_unit, is_default)
 VALUES

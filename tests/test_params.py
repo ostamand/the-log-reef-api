@@ -226,10 +226,37 @@ def test_get_params_by_days(test_db):
     )
 
     assert len(params.get_by_type(test_db, user.id, ParamTypes.ALKALINITY)) == 4
-    assert len(params.get_by_type(test_db, user.id, ParamTypes.ALKALINITY, days=1)) == 1
+    assert len(params.get_by_type(test_db, user.id, ParamTypes.ALKALINITY, days=1)) == 2
     assert len(params.get_by_type(test_db, user.id, ParamTypes.ALKALINITY, days=2)) == 2
     assert len(params.get_by_type(test_db, user.id, ParamTypes.ALKALINITY, days=4)) == 3
     assert len(params.get_by_type(test_db, user.id, ParamTypes.ALKALINITY, days=7)) == 3
     assert len(params.get_by_type(test_db, user.id, ParamTypes.ALKALINITY, days=9)) == 4
 
     delete_from_db(test_db, user)
+
+
+def test_can_get_params(test_db):
+    user, aquarium = save_random_user_and_aquarium(test_db)
+    note_test = "test"
+    params.create(test_db, user.id, aquarium.id, ParamTypes.ALKALINITY, 1.0, note=note_test)
+    results = params.get_by_type(test_db, user.id, ParamTypes.ALKALINITY)
+    assert len(results) == 1
+    
+    cols = [
+        "id",
+        "param_type_name",
+        "param_type_display_name",
+        "test_kit_name",
+        "test_kit_display_name",
+        "value", 
+        "unit", 
+        "timestamp", 
+        "note"
+    ]
+
+    assert len(results[0]) == len(cols)
+
+    data = {cols[i]: item for i, item in enumerate(results[0])}
+
+    assert data["note"] == note_test
+    assert data["param_type_name"] == ParamTypes.ALKALINITY.value

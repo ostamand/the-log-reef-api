@@ -47,6 +47,7 @@ def create(
     value: float,
     timestamp: datetime | None = None,
     test_kit: models.TestKit | str | TestKits | None = None,
+    note: str | None = None,
     commit: bool = True,
 ):
     if not timestamp:
@@ -85,6 +86,7 @@ def create(
         test_kit_name=test_kit.value,
         value=value_converted,
         timestamp=timestamp,
+        note=note
     )
 
     if commit:
@@ -128,31 +130,45 @@ def get_by_type(
     limit: int | None = None,
     offset: int | None = None,
 ):
+    query = """
+    SELECT 
+        p.id, 
+        p.param_type_name, 
+        param_types.display_name AS param_type_display_name, 
+        p.test_kit_name, 
+        t.display_name AS test_kit_display_name, 
+        p.value,
+        param_types.unit, 
+        p.timestamp, 
+        p.note
+    FROM param_values AS p
+    LEFT JOIN test_kits AS t ON p.test_kit_name = t.name
+    LEFT JOIN param_types ON p.param_type_name = param_types.name
+    WHERE p.user_id = :user_id
+        AND p.param_type_name = :param_type_name
+    """
     if type(param_type) is ParamTypes:
         param_type = param_type.value
+    
+    data = {"param_type_name": param_type, "user_id": user_id}
+    if days is not None:
+        query += " AND p.timestamp > current_date - interval ':days' day"
+        data["days"] = days
 
-    raw_query = (
-        db.query(models.ParamValue)
-        .join(models.ParamType)
-        .where(models.ParamValue.user_id == user_id)
-        .where(models.ParamType.name == param_type)
-    )
-
-    if days is not None and days > 0:
-        utc_now = datetime.utcnow()
-        raw_query = raw_query.where(
-            models.ParamValue.timestamp > utc_now - timedelta(days=days)
-        )
-
-    raw_query = raw_query.order_by(models.ParamValue.timestamp.desc())
+    query += " ORDER BY p.timestamp DESC"
 
     if limit is not None:
-        raw_query = raw_query.limit(limit)
-
+        query += " LIMIT :limit"
+        data["limit"] = limit
     if offset is not None:
-        raw_query = raw_query.offset(offset)
+        query += " OFFSET :offset"
+        data["offset"] = offset
 
-    return raw_query.all()
+    with Database().get_engine().connect() as con:
+        sql = text(query)
+
+        result = con.execute(sql, data)
+        return [row for row in result]
 
 
 def get_info_by_id(user_id: int, param_id: int):

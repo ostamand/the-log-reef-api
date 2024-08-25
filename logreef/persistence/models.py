@@ -29,6 +29,7 @@ class ParamType(Base):
     __tablename__ = "param_types"
     name = mapped_column(String, primary_key=True)
     unit = mapped_column(String, nullable=False)
+    display_name = mapped_column(String, nullable=False)
 
 
 class TestKit(Base):
@@ -65,7 +66,9 @@ class ParamValue(Base):
     aquarium_id = mapped_column(Integer, ForeignKey(Aquarium.id))
     test_kit_name = mapped_column(String, ForeignKey(TestKit.name))
     value = mapped_column(Numeric, nullable=False)
+    note = mapped_column(String, nullable=True)
     timestamp = mapped_column(DateTime, nullable=False)
+    
 
     param_type: Mapped[ParamType] = relationship(
         "ParamType", foreign_keys="ParamValue.param_type_name"
