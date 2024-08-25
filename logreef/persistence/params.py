@@ -14,6 +14,7 @@ from logreef.config import (
     get_test_kit,
 )
 from logreef.units.converter import convert_unit_for
+from logreef import schemas
 
 
 def get_type_by_user(user_id: int) -> list[str]:
@@ -86,7 +87,7 @@ def create(
         test_kit_name=test_kit.value,
         value=value_converted,
         timestamp=timestamp,
-        note=note
+        note=note,
     )
 
     if commit:
@@ -129,7 +130,19 @@ def get_by_type(
     days: int | None = None,
     limit: int | None = None,
     offset: int | None = None,
-):
+) -> list[schemas.ParamInfo]:
+    cols = [
+        "id",
+        "param_type_name",
+        "param_type_display_name",
+        "test_kit_name",
+        "test_kit_display_name",
+        "value",
+        "unit",
+        "timestamp",
+        "note",
+    ]
+
     query = """
     SELECT 
         p.id, 
@@ -149,7 +162,7 @@ def get_by_type(
     """
     if type(param_type) is ParamTypes:
         param_type = param_type.value
-    
+
     data = {"param_type_name": param_type, "user_id": user_id}
     if days is not None:
         query += " AND p.timestamp > current_date - interval ':days' day"
@@ -166,9 +179,13 @@ def get_by_type(
 
     with Database().get_engine().connect() as con:
         sql = text(query)
-
         result = con.execute(sql, data)
-        return [row for row in result]
+        out = []
+        for row in result:
+            out.append(
+                schemas.ParamInfo(**{cols[i]: item for i, item in enumerate(row)})
+            )
+        return out
 
 
 def get_info_by_id(user_id: int, param_id: int):
@@ -209,10 +226,22 @@ def delete_by_id(db: Session, user_id: int, param_id: int):
     return rows
 
 
-def update_by_id(db: Session, user_id: int, param_id: int, updatedValue: float):
+def update_by_id(
+    db: Session,
+    user_id: int,
+    param_id: int,
+    updatedValue: float | None = None,
+    updatedNote: str | None = None,
+):
+    updates = {}
+    if updatedValue is not None:
+        updates[models.ParamValue.value] = updatedValue
+    if updatedNote is not None:
+        updates[models.ParamValue.note] = updatedNote
+
     db.query(models.ParamValue).filter(models.ParamValue.user_id == user_id).filter(
         models.ParamValue.id == param_id
-    ).update({models.ParamValue.value: updatedValue})
+    ).update(updates)
     db.commit()
     return (
         db.query(models.ParamValue)

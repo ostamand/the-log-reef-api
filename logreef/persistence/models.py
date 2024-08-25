@@ -68,7 +68,6 @@ class ParamValue(Base):
     value = mapped_column(Numeric, nullable=False)
     note = mapped_column(String, nullable=True)
     timestamp = mapped_column(DateTime, nullable=False)
-    
 
     param_type: Mapped[ParamType] = relationship(
         "ParamType", foreign_keys="ParamValue.param_type_name"

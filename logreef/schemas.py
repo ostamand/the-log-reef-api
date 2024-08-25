@@ -42,6 +42,18 @@ class ParamCreate(BaseModel):
     timestamp: datetime | None = None
 
 
+class ParamInfo(BaseModel):
+    id: int
+    param_type_name: str
+    param_type_display_name: str
+    test_kit_name: str
+    test_kit_display_name: str
+    value: float
+    unit: str
+    note: str | None
+    timestamp: datetime
+
+
 class WaterChangeCreate(BaseModel):
     aquarium: int | str
     unit_name: str

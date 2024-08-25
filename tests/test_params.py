@@ -238,25 +238,34 @@ def test_get_params_by_days(test_db):
 def test_can_get_params(test_db):
     user, aquarium = save_random_user_and_aquarium(test_db)
     note_test = "test"
-    params.create(test_db, user.id, aquarium.id, ParamTypes.ALKALINITY, 1.0, note=note_test)
+    params.create(
+        test_db, user.id, aquarium.id, ParamTypes.ALKALINITY, 1.0, note=note_test
+    )
     results = params.get_by_type(test_db, user.id, ParamTypes.ALKALINITY)
     assert len(results) == 1
-    
-    cols = [
-        "id",
-        "param_type_name",
-        "param_type_display_name",
-        "test_kit_name",
-        "test_kit_display_name",
-        "value", 
-        "unit", 
-        "timestamp", 
-        "note"
-    ]
+    assert results[0].note == note_test
+    assert results[0].param_type_name == ParamTypes.ALKALINITY.value
 
-    assert len(results[0]) == len(cols)
 
-    data = {cols[i]: item for i, item in enumerate(results[0])}
+def test_can_update_note(test_db):
+    user, aquarium = save_random_user_and_aquarium(test_db)
+    note_updated = "test"
+    original_value = 200
+    params.create(test_db, user.id, aquarium.id, ParamTypes.CALCIUM, original_value)
 
-    assert data["note"] == note_test
-    assert data["param_type_name"] == ParamTypes.ALKALINITY.value
+    # check saved param
+    results = params.get_by_type(test_db, user.id, ParamTypes.CALCIUM)
+    assert len(results) == 1
+    original = results[0]
+    assert original.note is None
+    assert original.param_type_name == ParamTypes.CALCIUM.value
+
+    # update note
+    params.update_by_id(test_db, user.id, original.id, updatedNote=note_updated)
+
+    # check updated param
+    results = params.get_by_type(test_db, user.id, ParamTypes.CALCIUM)
+    assert len(results) == 1
+    updated = results[0]
+    assert updated.note == note_updated
+    assert updated.value == original_value
