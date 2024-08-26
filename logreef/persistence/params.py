@@ -17,7 +17,7 @@ from logreef.units.converter import convert_unit_for
 from logreef import schemas
 
 
-def get_type_by_user(user_id: int) -> list[str]:
+def get_type_by_user(user_id: int, aquarium_name: str) -> list[str]:
     with Database().get_engine().connect() as con:
         sql = text(
             """
@@ -25,10 +25,12 @@ def get_type_by_user(user_id: int) -> list[str]:
             FROM param_values
             JOIN users ON param_values.user_id = users.id
             JOIN param_types ON param_values.param_type_name = param_types.name
-            WHERE user_id = :user_id
+            JOIN aquariums ON param_values.aquarium_id = aquariums.id
+            WHERE param_values.user_id = :user_id
+                AND aquariums.name = :aquarium_name
             """
         )
-        result = con.execute(sql, {"user_id": user_id})
+        result = con.execute(sql, {"user_id": user_id, "aquarium_name": aquarium_name})
         return [row[0] for row in result]
 
 

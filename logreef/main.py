@@ -136,7 +136,6 @@ def create_param(
 def get_params(
     aquarium: str,
     current_user: Annotated[schemas.User, Depends(get_current_user)],
-    db: Session = Depends(get_session),
     type: str | None = None,
     days: int | None = None,
     limit: int | None = None,
