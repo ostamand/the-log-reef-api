@@ -75,7 +75,7 @@ def test_create_value(test_db):
 
     delete_from_db(test_db, paramValue)
 
-    latestValue = params.get_by_type(test_db, user.id, param_type, limit=1)
+    latestValue = params.get_by_type(user.id, aquarium.name, param_type, limit=1)
 
     assert len(latestValue) == 0
 
@@ -109,10 +109,10 @@ def test_can_get_param_by_type(test_db):
         3.0,
     )
 
-    values = params.get_by_type(test_db, user.id, "ph")
+    values = params.get_by_type(user.id, aquarium.name, "ph")
     assert len(values) == 1
 
-    values = params.get_by_type(test_db, user.id, "alkalinity")
+    values = params.get_by_type(user.id, aquarium.name, "alkalinity")
     assert len(values) == 2
 
     delete_from_db(test_db, user)
@@ -135,16 +135,16 @@ def test_can_filter_by_user(test_db):
         10.0,
     )
 
-    values = params.get_by_type(test_db, user_2.id, "ph")
+    values = params.get_by_type(user_2.id, aquarium_2.name, "ph")
     assert len(values) == 0
 
-    values = params.get_by_type(test_db, user_2.id, "alkalinity")
+    values = params.get_by_type(user_2.id, aquarium_2.name, "alkalinity")
     assert len(values) == 1
 
-    values = params.get_by_type(test_db, user_1.id, "ph")
+    values = params.get_by_type(user_1.id, aquarium_1.name, "ph")
     assert len(values) == 1
 
-    values = params.get_by_type(test_db, user_1.id, "alkalinity")
+    values = params.get_by_type(user_1.id, aquarium_1.name, "alkalinity")
     assert len(values) == 0
 
     delete_from_db(test_db, user_1)
@@ -165,7 +165,9 @@ def test_can_save_param_with_test_kit(test_db):
         value,
     )
 
-    last_value = params.get_by_type(test_db, user.id, ParamTypes.ALKALINITY, limit=1)
+    last_value = params.get_by_type(
+        user.id, aquarium.name, ParamTypes.ALKALINITY, limit=1
+    )
 
     assert len(last_value) == 1
     assert last_value[0].test_kit_name == TestKits.GENERIC_ALKALINITY_DHK.value
@@ -183,7 +185,9 @@ def test_can_save_param_with_convert(test_db):
         test_db, user.id, aquarium.id, "alkalinity", 0.5, test_kit="salifert_alkalinity"
     )
 
-    last_value = params.get_by_type(test_db, user.id, ParamTypes.ALKALINITY, limit=1)
+    last_value = params.get_by_type(
+        user.id, aquarium.name, ParamTypes.ALKALINITY, limit=1
+    )
 
     assert len(last_value) == 1
     assert last_value[0].test_kit_name == TestKits.SALIFERT_ALKALINITY.value
@@ -225,12 +229,27 @@ def test_get_params_by_days(test_db):
         now_utc - timedelta(days=8),
     )
 
-    assert len(params.get_by_type(test_db, user.id, ParamTypes.ALKALINITY)) == 4
-    assert len(params.get_by_type(test_db, user.id, ParamTypes.ALKALINITY, days=1)) == 2
-    assert len(params.get_by_type(test_db, user.id, ParamTypes.ALKALINITY, days=2)) == 2
-    assert len(params.get_by_type(test_db, user.id, ParamTypes.ALKALINITY, days=4)) == 3
-    assert len(params.get_by_type(test_db, user.id, ParamTypes.ALKALINITY, days=7)) == 3
-    assert len(params.get_by_type(test_db, user.id, ParamTypes.ALKALINITY, days=9)) == 4
+    assert len(params.get_by_type(user.id, aquarium.name, ParamTypes.ALKALINITY)) == 4
+    assert (
+        len(params.get_by_type(user.id, aquarium.name, ParamTypes.ALKALINITY, days=1))
+        == 2
+    )
+    assert (
+        len(params.get_by_type(user.id, aquarium.name, ParamTypes.ALKALINITY, days=2))
+        == 2
+    )
+    assert (
+        len(params.get_by_type(user.id, aquarium.name, ParamTypes.ALKALINITY, days=4))
+        == 3
+    )
+    assert (
+        len(params.get_by_type(user.id, aquarium.name, ParamTypes.ALKALINITY, days=7))
+        == 3
+    )
+    assert (
+        len(params.get_by_type(user.id, aquarium.name, ParamTypes.ALKALINITY, days=9))
+        == 4
+    )
 
     delete_from_db(test_db, user)
 
@@ -241,7 +260,7 @@ def test_can_get_params(test_db):
     params.create(
         test_db, user.id, aquarium.id, ParamTypes.ALKALINITY, 1.0, note=note_test
     )
-    results = params.get_by_type(test_db, user.id, ParamTypes.ALKALINITY)
+    results = params.get_by_type(user.id, aquarium.name, ParamTypes.ALKALINITY)
     assert len(results) == 1
     assert results[0].note == note_test
     assert results[0].param_type_name == ParamTypes.ALKALINITY.value
@@ -254,7 +273,7 @@ def test_can_update_note(test_db):
     params.create(test_db, user.id, aquarium.id, ParamTypes.CALCIUM, original_value)
 
     # check saved param
-    results = params.get_by_type(test_db, user.id, ParamTypes.CALCIUM)
+    results = params.get_by_type(user.id, aquarium.name, ParamTypes.CALCIUM)
     assert len(results) == 1
     original = results[0]
     assert original.note is None
@@ -264,7 +283,7 @@ def test_can_update_note(test_db):
     params.update_by_id(test_db, user.id, original.id, note=note_updated)
 
     # check updated param
-    results = params.get_by_type(test_db, user.id, ParamTypes.CALCIUM)
+    results = params.get_by_type(user.id, aquarium.name, ParamTypes.CALCIUM)
     assert len(results) == 1
     updated = results[0]
     assert updated.note == note_updated

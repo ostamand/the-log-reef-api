@@ -124,8 +124,8 @@ def get_stats_by_type_last_n_days(
 
 
 def get_by_type(
-    db: Session,
     user_id: int,
+    aquarium: str,
     param_type: str | ParamTypes,
     days: int | None = None,
     limit: int | None = None,
@@ -146,13 +146,19 @@ def get_by_type(
     FROM param_values AS p
     LEFT JOIN test_kits AS t ON p.test_kit_name = t.name
     LEFT JOIN param_types ON p.param_type_name = param_types.name
+    LEFT JOIN aquariums ON p.aquarium_id =aquariums.id
     WHERE p.user_id = :user_id
         AND p.param_type_name = :param_type_name
+        AND aquariums.name = :aquarium_name
     """
     if type(param_type) is ParamTypes:
         param_type = param_type.value
 
-    data = {"param_type_name": param_type, "user_id": user_id}
+    data = {
+        "param_type_name": param_type,
+        "user_id": user_id,
+        "aquarium_name": aquarium,
+    }
     if days is not None:
         query += " AND p.timestamp > current_date - interval ':days' day"
         data["days"] = days
@@ -181,7 +187,7 @@ def get_param_by_id(user_id: int, param_id: int) -> schemas.ParamInfo:
     cols = schemas.ParamInfo.get_fields()
     with Database().get_engine().connect() as con:
         sql = text(
-        """
+            """
         SELECT 
             v.id, 
             v.param_type_name, 
@@ -202,7 +208,9 @@ def get_param_by_id(user_id: int, param_id: int) -> schemas.ParamInfo:
         result = con.execute(sql, {"param_id": param_id, "user_id": user_id})
         data = [row for row in result]
         if len(data) == 1:
-            return schemas.ParamInfo(**{cols[i]: item for i, item in enumerate(data[0])})
+            return schemas.ParamInfo(
+                **{cols[i]: item for i, item in enumerate(data[0])}
+            )
         return schemas.ParamInfo()
 
 

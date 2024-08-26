@@ -134,6 +134,7 @@ def create_param(
 
 @app.get("/params/")
 def get_params(
+    aquarium: str,
     current_user: Annotated[schemas.User, Depends(get_current_user)],
     db: Session = Depends(get_session),
     type: str | None = None,
@@ -141,7 +142,7 @@ def get_params(
     limit: int | None = None,
     offset: int = 0,
 ):
-    return params.get_by_type(db, current_user.id, type, days, limit, offset)
+    return params.get_by_type(current_user.id, aquarium, type, days, limit, offset)
 
 
 @app.delete("/params/{param_id}")
@@ -183,13 +184,14 @@ def update_param_by_id(
 
 @app.get("/summary/")
 def get_summary(
+    aquarium: str,
     current_user: Annotated[schemas.User, Depends(get_current_user)],
     db: Session = Depends(get_session),
     type: str | None = None,
 ):
     if type is not None:
-        return {type: summary.get_by_type(db, current_user.id, type)}
-    return summary.get_for_all(db, current_user.id)
+        return {type: summary.get_by_type(db, current_user.id, aquarium, type)}
+    return summary.get_for_all(db, current_user.id, aquarium)
 
 
 @app.get("/testkits/")

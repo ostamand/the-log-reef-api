@@ -4,17 +4,21 @@ from logreef.persistence import params
 from logreef.persistence.database import Session
 
 
-def get_for_all(db: Session, user_id: int) -> dict[str, dict[str, any]]:
+def get_for_all(
+    db: Session, user_id: int, aquarium_name: str
+) -> dict[str, dict[str, any]]:
     # get all param types with at least one value
     # get summaries per type
     summary = {}
     param_types = params.get_type_by_user(user_id)
     for param_type in param_types:
-        summary[param_type] = get_by_type(db, user_id, param_type)
+        summary[param_type] = get_by_type(db, user_id, aquarium_name, param_type)
     return summary
 
 
-def get_by_type(db: Session, user_id: int, param_type: str) -> dict[str, any]:
+def get_by_type(
+    db: Session, user_id: int, aquarium_name: str, param_type: str
+) -> dict[str, any]:
     # last two values
     # time since last two values in seconds
     # # data points in last week
@@ -33,7 +37,7 @@ def get_by_type(db: Session, user_id: int, param_type: str) -> dict[str, any]:
     }
 
     # get last two info
-    last_params = params.get_by_type(db, user_id, param_type, limit=2)
+    last_params = params.get_by_type(user_id, aquarium_name, param_type, limit=2)
 
     for param in last_params:
         summary["values"].append(float(param.value))
