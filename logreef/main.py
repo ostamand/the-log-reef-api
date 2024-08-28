@@ -11,7 +11,7 @@ from logreef.persistence import users, params, aquariums, testkits, events
 from logreef import summary
 from logreef.persistence.database import get_session
 from logreef.security import create_access_token
-from logreef.user import get_current_user, get_me
+from logreef.user import get_current_user, get_me, check_for_demo
 from logreef.register import register_user, register_code_is_valid
 
 logging.getLogger("passlib").setLevel(logging.ERROR)
@@ -109,10 +109,10 @@ def login(
         )
     access_token = create_access_token(data={"username": user.username})
     return schemas.Token(
-        access_token=access_token, 
+        access_token=access_token,
         token_type="bearer",
-        is_demo = user.is_demo,
-        is_admin= user.is_admin
+        is_demo=user.is_demo,
+        is_admin=user.is_admin,
     )
 
 
@@ -123,11 +123,7 @@ def create_param(
     db: Session = Depends(get_session),
     commit: bool = True,
 ):
-    if current_user.is_demo:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Demo user can't create new param",
-        )
+    check_for_demo(current_user)
     return params.create(
         db,
         current_user.id,
@@ -186,6 +182,7 @@ def update_param_by_id(
     data: schemas.ParamUpdate,
     db: Session = Depends(get_session),
 ):
+    check_for_demo(current_user)
     return params.update_by_id(db, current_user.id, param_id, **data.model_dump())
 
 

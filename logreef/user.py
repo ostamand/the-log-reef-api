@@ -13,6 +13,15 @@ from logreef import schemas
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
 
+def check_for_demo(user: schemas.User):
+    if user.is_demo:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Demo user can't create new param",
+        )
+    return False
+
+
 def get_current_user(
     token: Annotated[str, Depends(oauth2_scheme)], db: Session = Depends(get_session)
 ):
