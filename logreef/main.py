@@ -118,7 +118,11 @@ def create_param(
     db: Session = Depends(get_session),
     commit: bool = True,
 ):
-
+    if current_user.is_demo:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Demo user can't create new param",
+        )
     return params.create(
         db,
         current_user.id,

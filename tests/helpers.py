@@ -19,11 +19,11 @@ def get_random_string(length: int):
     )
 
 
-def save_random_user(db: Session) -> models.User:
+def save_random_user(db: Session, is_demo=False) -> models.User:
     username = get_random_string(10)
     password = get_random_string(10)
     # create new test user
-    user = users.create(db, username, password)
+    user = users.create(db, username, password, is_demo=is_demo)
     return user
 
 
@@ -32,7 +32,9 @@ def save_random_aquarium(db: Session, user_id: int) -> models.Aquarium:
     return aquariums.create(db, user_id, name)
 
 
-def save_random_user_and_aquarium(db: Session) -> tuple[models.User, models.Aquarium]:
-    user = save_random_user(db)
+def save_random_user_and_aquarium(
+    db: Session, is_demo: bool = False
+) -> tuple[models.User, models.Aquarium]:
+    user = save_random_user(db, is_demo=is_demo)
     aquarium = save_random_aquarium(db, user.id)
     return user, aquarium

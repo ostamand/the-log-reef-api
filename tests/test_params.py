@@ -7,6 +7,7 @@ import math
 from logreef.persistence import params
 from logreef.persistence.database import delete_from_db
 from logreef.config import TestKits, ParamTypes
+from logreef.persistence import users
 
 from .helpers import (
     save_random_user,
