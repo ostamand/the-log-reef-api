@@ -123,3 +123,5 @@ class AquariumCreate(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str
+    is_demo: bool
+    is_admin: bool

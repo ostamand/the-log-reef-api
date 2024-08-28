@@ -108,7 +108,12 @@ def login(
             headers={"WWW-Authenticate": "Bearer"},
         )
     access_token = create_access_token(data={"username": user.username})
-    return schemas.Token(access_token=access_token, token_type="bearer")
+    return schemas.Token(
+        access_token=access_token, 
+        token_type="bearer",
+        is_demo = user.is_demo,
+        is_admin= user.is_admin
+    )
 
 
 @app.post("/params")
