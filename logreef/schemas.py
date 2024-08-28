@@ -24,7 +24,8 @@ class RegisterUser(UserBase):
 
 class User(UserBase):
     id: int
-    admin: bool
+    is_admin: bool
+    is_demo: bool
 
     class Config:
         from_attributes = True

@@ -118,8 +118,7 @@ def create_param(
     db: Session = Depends(get_session),
     commit: bool = True,
 ):
-    # TODO: unit conversion
-    # TODO: add optional time to data
+
     return params.create(
         db,
         current_user.id,

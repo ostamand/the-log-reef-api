@@ -17,7 +17,8 @@ CREATE TABLE users (
 	email VARCHAR(255),
 	fullname VARCHAR(255),
 	hash_password VARCHAR(255) NOT NULL,
-	admin BOOLEAN NOT NULL DEFAULT false
+	is_admin BOOLEAN NOT NULL DEFAULT false,
+	is_demo BOOLEAN NOT NULL DEFAULT false
 );
 
 CREATE TABLE register_access_codes (

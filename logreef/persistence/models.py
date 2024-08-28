@@ -12,7 +12,8 @@ class User(Base):
     fullname = mapped_column(String, nullable=True)
     email = mapped_column(String, nullable=True)
     hash_password = mapped_column(String)
-    admin = mapped_column(Boolean)
+    is_admin = mapped_column(Boolean)
+    is_demo = mapped_column(Boolean)
 
 
 class RegisterAccessCode(Base):

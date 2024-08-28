@@ -10,13 +10,16 @@ def create(
     password: str,
     email: str | None = None,
     fullname: str | None = None,
+    is_demo: bool = False,
+    is_admin: bool = False,
 ) -> models.User:
     db_user = models.User(
         username=username,
         hash_password=hash_password(password),
         email=email,
         fullname=fullname,
-        admin=False,
+        is_admin=is_admin,
+        is_demo=is_demo,
     )
     db.add(db_user)
     db.commit()
