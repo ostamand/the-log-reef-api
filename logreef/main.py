@@ -78,6 +78,7 @@ def create_aquarium(
     data: schemas.AquariumCreate,
     db: Session = Depends(get_session),
 ):
+    check_for_demo(current_user)
     aquarium_db = aquariums.get_by_name(db, current_user.id, data.name)
     if aquarium_db is not None:
         raise HTTPException(
@@ -154,6 +155,7 @@ def delete_param_by_id(
     current_user: Annotated[schemas.User, Depends(get_current_user)],
     db: Session = Depends(get_session),
 ):
+    check_for_demo(current_user)
     try:
         deleted = params.delete_by_id(db, current_user.id, param_id)
     except:
