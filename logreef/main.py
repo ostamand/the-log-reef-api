@@ -12,7 +12,7 @@ from logreef.persistence import users, params, aquariums, testkits, events
 from logreef import summary
 from logreef.persistence.database import get_session
 from logreef.security import create_access_token
-from logreef.user import get_current_user, get_me, check_for_demo
+from logreef.user import get_current_user, get_me, check_for_demo, check_for_force_login
 from logreef.register import register_user, register_code_is_valid
 
 logging.getLogger("passlib").setLevel(logging.ERROR)
@@ -42,6 +42,7 @@ async def read_users_me(
     current_user: Annotated[schemas.User, Depends(get_current_user)],
     db: Session = Depends(get_session),
 ):
+    check_for_force_login(current_user)
     return get_me(db, current_user)
 
 
@@ -79,6 +80,7 @@ def create_aquarium(
     data: schemas.AquariumCreate,
     db: Session = Depends(get_session),
 ):
+    check_for_force_login(current_user)
     check_for_demo(current_user)
     aquarium_db = aquariums.get_by_name(db, current_user.id, data.name)
     if aquarium_db is not None:
@@ -94,6 +96,7 @@ def get_aquariums(
     current_user: Annotated[schemas.User, Depends(get_current_user)],
     db: Session = Depends(get_session),
 ):
+    check_for_force_login(current_user)
     return aquariums.get_all(db, current_user.id)
 
 
@@ -111,15 +114,18 @@ def login(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
+    user_updates = {}
+
+    # update force login if needed
     if user.force_login:
-        users.update_by_id(user.id, force_login=False)
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Login required"
-        )
+        user_updates["force_login"]=False
 
     # update last login time
     if not user.is_demo:
-        users.update_by_id(user.id, last_login_on=datetime.now(timezone.utc))
+        user_updates["last_login_on"]=datetime.now(timezone.utc)
+
+    if user_updates:
+        users.update_by_id(user.id, **user_updates)
 
     access_token = create_access_token(data={"username": user.username})
 
@@ -138,6 +144,7 @@ def create_param(
     db: Session = Depends(get_session),
     commit: bool = True,
 ):
+    check_for_force_login(current_user)
     check_for_demo(current_user)
     return params.create(
         db,
@@ -160,6 +167,7 @@ def get_params(
     limit: int | None = None,
     offset: int = 0,
 ):
+    check_for_force_login(current_user)
     return params.get_by_type(current_user.id, aquarium, type, days, limit, offset)
 
 
@@ -169,6 +177,7 @@ def delete_param_by_id(
     current_user: Annotated[schemas.User, Depends(get_current_user)],
     db: Session = Depends(get_session),
 ):
+    check_for_force_login(current_user)
     check_for_demo(current_user)
     try:
         deleted = params.delete_by_id(db, current_user.id, param_id)
@@ -188,6 +197,7 @@ def get_param_by_id(
     param_id: int,
     current_user: Annotated[schemas.User, Depends(get_current_user)],
 ):
+    check_for_force_login(current_user)
     return params.get_param_by_id(current_user.id, param_id)
 
 
@@ -198,6 +208,7 @@ def update_param_by_id(
     data: schemas.ParamUpdate,
     db: Session = Depends(get_session),
 ):
+    check_for_force_login(current_user)
     check_for_demo(current_user)
     return params.update_by_id(db, current_user.id, param_id, **data.model_dump())
 
@@ -209,6 +220,7 @@ def get_summary(
     db: Session = Depends(get_session),
     type: str | None = None,
 ):
+    check_for_force_login(current_user)
     if type is not None:
         return {type: summary.get_by_type(db, current_user.id, aquarium, type)}
     return summary.get_for_all(db, current_user.id, aquarium)
@@ -237,6 +249,7 @@ def create_water_change(
     data: schemas.WaterChangeCreate,
     db: Session = Depends(get_session),
 ):
+    check_for_force_login(current_user)
     event_db = events.create_water_change(
         db,
         current_user.id,
@@ -255,5 +268,6 @@ def get_water_changes(
     db: Session = Depends(get_session),
     days: int | None = None,
 ):
+    check_for_force_login(current_user)
     water_changes_db = events.get_water_changes(db, current_user.id, days=days)
     return list(map(lambda x: schemas.EventWaterChange.convert(x), water_changes_db))

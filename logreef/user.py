@@ -17,7 +17,15 @@ def check_for_demo(user: schemas.User):
     if user.is_demo:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Demo user can't create new param",
+            detail="Demo user not allowed",
+        )
+    return False
+
+
+def check_for_force_login(user: schemas.User):
+    if user.force_login:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Login required"
         )
     return False
 
