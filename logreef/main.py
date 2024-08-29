@@ -1,5 +1,6 @@
 from typing import Annotated
 import logging
+from datetime import datetime, timezone
 
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
@@ -102,13 +103,26 @@ def login(
     db: Session = Depends(get_session),
 ) -> schemas.Token:
     user = users.authenticate(db, form_data.username, form_data.password)
+
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
+
+    if user.force_login:
+        users.update_by_id(user.id, force_login=False)
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Login required"
+        )
+
+    # update last login time
+    if not user.is_demo:
+        users.update_by_id(user.id, last_login_on=datetime.now(timezone.utc))
+
     access_token = create_access_token(data={"username": user.username})
+
     return schemas.Token(
         access_token=access_token,
         token_type="bearer",

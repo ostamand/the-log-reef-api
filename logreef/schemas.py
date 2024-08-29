@@ -8,7 +8,6 @@ from logreef.persistence import models
 class Aquarium(BaseModel):
     id: int
     name: str
-    started_on: datetime
 
 
 class UserBase(BaseModel):
@@ -26,6 +25,7 @@ class User(UserBase):
     id: int
     is_admin: bool
     is_demo: bool
+    created_on: datetime
 
     class Config:
         from_attributes = True

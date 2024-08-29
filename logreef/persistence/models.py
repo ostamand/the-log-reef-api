@@ -9,11 +9,14 @@ class User(Base):
 
     id = mapped_column(Integer, primary_key=True)
     username = mapped_column(String, unique=True, index=True)
-    fullname = mapped_column(String, nullable=True)
     email = mapped_column(String, nullable=True)
+    fullname = mapped_column(String, nullable=True)
     hash_password = mapped_column(String)
     is_admin = mapped_column(Boolean)
     is_demo = mapped_column(Boolean)
+    created_on = mapped_column(DateTime)
+    last_login_on = mapped_column(DateTime)
+    force_login = mapped_column(Boolean, default=False)
 
 
 class RegisterAccessCode(Base):

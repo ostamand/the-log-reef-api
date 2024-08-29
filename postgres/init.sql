@@ -18,7 +18,10 @@ CREATE TABLE users (
 	fullname VARCHAR(255),
 	hash_password VARCHAR(255) NOT NULL,
 	is_admin BOOLEAN NOT NULL DEFAULT false,
-	is_demo BOOLEAN NOT NULL DEFAULT false
+	is_demo BOOLEAN NOT NULL DEFAULT false,
+	created_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	last_login_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	force_login BOOLEAN DEFAULT false
 );
 
 CREATE TABLE register_access_codes (

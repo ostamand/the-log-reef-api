@@ -294,18 +294,13 @@ def test_can_update_note(test_db):
 def test_update_a_param_sets_a_new_updated_on(test_db):
     user, aquarium = save_random_user_and_aquarium(test_db)
     param = params.create(
-        test_db, 
+        test_db,
         user.id,
         aquarium.id,
-        ParamTypes.ALKALINITY, 
+        ParamTypes.ALKALINITY,
         10,
     )
     assert param.created_on == param.updated_on
-    
-    updated_param = params.update_by_id(
-        test_db,
-        user.id,
-        param.id,
-        param.value + 1
-    )
+
+    updated_param = params.update_by_id(test_db, user.id, param.id, param.value + 1)
     assert updated_param.updated_on > updated_param.created_on

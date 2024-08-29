@@ -65,5 +65,6 @@ def get_me(db: Session, user: int | models.User) -> schemas.Me:
         is_admin=user.is_admin,
         is_demo=user.is_demo,
         aquariums=all_aquariums,
+        created_on=user.created_on
     )
     return me
