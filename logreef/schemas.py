@@ -53,6 +53,8 @@ class ParamInfo(BaseModel):
     unit: str
     note: str | None
     timestamp: datetime
+    created_on: datetime
+    updated_on: datetime
 
     @classmethod
     def get_fields(cls):
@@ -66,6 +68,8 @@ class ParamInfo(BaseModel):
             "unit",
             "timestamp",
             "note",
+            "created_on",
+            "updated_on",
         ]
 
 

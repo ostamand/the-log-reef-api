@@ -53,8 +53,9 @@ def create(
     note: str | None = None,
     commit: bool = True,
 ):
-    if not timestamp:
-        timestamp = datetime.now(timezone.utc)
+    now = datetime.now(timezone.utc)
+
+    timestamp = now if not timestamp else timestamp
 
     if type(param_type) is models.ParamType:
         param_type = get_param_type(param_type.name)
@@ -89,6 +90,8 @@ def create(
         test_kit_name=test_kit.value,
         value=value_converted,
         timestamp=timestamp,
+        created_on=now,
+        updated_on=now,
         note=note,
     )
 
@@ -144,7 +147,9 @@ def get_by_type(
         p.value,
         param_types.unit, 
         p.timestamp, 
-        p.note
+        p.note,
+        p.created_on,
+        p.updated_on
     FROM param_values AS p
     LEFT JOIN test_kits AS t ON p.test_kit_name = t.name
     LEFT JOIN param_types ON p.param_type_name = param_types.name
@@ -234,7 +239,7 @@ def update_by_id(
     value: float | None = None,
     note: str | None = None,
 ):
-    updates = {}
+    updates = {models.ParamValue.updated_on: datetime.now(timezone.utc)}
     if value is not None:
         updates[models.ParamValue.value] = value
     if note is not None:
