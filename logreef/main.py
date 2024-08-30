@@ -118,11 +118,11 @@ def login(
 
     # update force login if needed
     if user.force_login:
-        user_updates["force_login"]=False
+        user_updates["force_login"] = False
 
     # update last login time
     if not user.is_demo:
-        user_updates["last_login_on"]=datetime.now(timezone.utc)
+        user_updates["last_login_on"] = datetime.now(timezone.utc)
 
     if user_updates:
         users.update_by_id(user.id, **user_updates)

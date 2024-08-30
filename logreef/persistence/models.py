@@ -56,8 +56,10 @@ class Aquarium(Base):
     id = mapped_column(Integer, primary_key=True)
     user_id = mapped_column(Integer, ForeignKey(User.id))
     name = mapped_column(String, nullable=False)
+    description = mapped_column(String)
     started_on = mapped_column(DateTime)
-
+    created_on = mapped_column(DateTime)
+    updated_on = mapped_column(DateTime)
     user: Mapped[User] = relationship("User", foreign_keys="Aquarium.user_id")
 
 

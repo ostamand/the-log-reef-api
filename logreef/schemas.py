@@ -10,6 +10,12 @@ class Aquarium(BaseModel):
     name: str
 
 
+class AquariumCreate(BaseModel):
+    name: str
+    started_on: datetime | None
+    description: str | None
+
+
 class UserBase(BaseModel):
     username: str
     fullname: str | None = None
@@ -118,10 +124,6 @@ class EventWaterChange(BaseModel):
                 ),
             ),
         )
-
-
-class AquariumCreate(BaseModel):
-    name: str
 
 
 class Token(BaseModel):
