@@ -10,6 +10,7 @@ DROP TABLE IF EXISTS event_dosings;
 DROP TABLE IF EXISTS event_miscs;
 DROP TABLE IF EXISTS event_water_changes;
 DROP TABLE IF EXISTS events;
+DROP TABLE IF EXISTS messages;
 
 CREATE TABLE users (
 	id SERIAL PRIMARY KEY,
@@ -108,6 +109,19 @@ CREATE TABLE events (
 	water_change_id INTEGER REFERENCES event_water_changes(id) ON DELETE CASCADE,
 	misc_id INTEGER REFERENCES event_miscs(id) ON DELETE CASCADE,
 	timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE messages (
+	id SERIAL PRIMARY KEY,
+	source VARCHAR(25),
+	user_id INTEGER REFERENCES users(id),
+	full_name VARCHAR(100),
+	email VARCHAR(255) NOT NULL,
+	subject VARCHAR(100),
+	message VARCHAR(255) NOT NULL,
+	sent_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	processed BOOLEAN,
+	processed_on TIMESTAMP
 );
 
 INSERT INTO units (name, display_name)

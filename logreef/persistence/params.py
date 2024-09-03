@@ -17,9 +17,8 @@ from logreef.units.converter import convert_unit_for
 from logreef import schemas
 
 
-def get_type_by_user(user_id: int, aquarium_name: str) -> list[str]:
-    with Database().get_engine().connect() as con:
-        sql = text(
+def get_type_by_user(db: Session, user_id: int, aquarium_name: str) -> list[str]:   
+    sql = text(
             """
             SELECT DISTINCT(param_types.name)
             FROM param_values
@@ -30,8 +29,8 @@ def get_type_by_user(user_id: int, aquarium_name: str) -> list[str]:
                 AND aquariums.name = :aquarium_name
             """
         )
-        result = con.execute(sql, {"user_id": user_id, "aquarium_name": aquarium_name})
-        return [row[0] for row in result]
+    result = db.execute(sql, {"user_id": user_id, "aquarium_name": aquarium_name})
+    return [row[0] for row in result]
 
 
 def get_type(db: Session, name: str):
@@ -52,6 +51,7 @@ def create(
     test_kit: models.TestKit | str | TestKits | None = None,
     note: str | None = None,
     commit: bool = True,
+    convert_value: bool = True
 ):
     now = datetime.now(timezone.utc)
 
@@ -78,9 +78,12 @@ def create(
 
     # convert value
     # TODO: Also save value not converted?
-    value_converted = convert_unit_for(param_type, test_kit, value)
-    if value_converted is None:
-        raise Exception(f"{param_type.value} and/or {test_kit.value} not supported")
+    if convert_value:
+        value_converted = convert_unit_for(param_type, test_kit, value)
+        if value_converted is None:
+            raise Exception(f"{param_type.value} and/or {test_kit.value} not supported")
+    else:
+        value_converted = value
 
     # TODO check if user is owner of aquarium?
     db_value = models.ParamValue(
@@ -129,6 +132,7 @@ def get_stats_by_type_last_n_days(
 
 
 def get_by_type(
+    db: Session,
     user_id: int,
     aquarium: str,
     param_type: str | ParamTypes,
@@ -179,15 +183,14 @@ def get_by_type(
         query += " OFFSET :offset"
         data["offset"] = offset
 
-    with Database().get_engine().connect() as con:
-        sql = text(query)
-        result = con.execute(sql, data)
-        out = []
-        for row in result:
-            out.append(
-                schemas.ParamInfo(**{cols[i]: item for i, item in enumerate(row)})
-            )
-        return out
+    sql = text(query)
+    result = db.execute(sql, data)
+    out = []
+    for row in result:
+        out.append(
+            schemas.ParamInfo(**{cols[i]: item for i, item in enumerate(row)})
+        )
+    return out
 
 
 def get_param_by_id(user_id: int, param_id: int) -> schemas.ParamInfo:

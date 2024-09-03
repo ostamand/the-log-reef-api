@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
 from logreef import schemas, __version__
-from logreef.persistence import users, params, aquariums, testkits, events
+from logreef.persistence import users, params, aquariums, testkits, events, messages
 from logreef import summary
 from logreef.persistence.database import get_session
 from logreef.security import create_access_token
@@ -74,6 +74,22 @@ def check_register(code: str | None = None, db: Session = Depends(get_session)):
     return response
 
 
+@app.post("/messages")
+def save_message(
+    data: schemas.MessageCreate,
+    db: Session = Depends(get_session),
+):
+    return messages.create(
+        db,
+        data.email,
+        data.message,
+        source=data.source,
+        user_id=data.user_id,
+        full_name=data.full_name,
+        subject=data.subject,
+    )
+
+
 @app.post("/aquariums")
 def create_aquarium(
     current_user: Annotated[schemas.User, Depends(get_current_user)],
@@ -125,7 +141,7 @@ def login(
         user_updates["last_login_on"] = datetime.now(timezone.utc)
 
     if user_updates:
-        users.update_by_id(user.id, **user_updates)
+        users.update_by_id(db, user.id, **user_updates)
 
     access_token = create_access_token(data={"username": user.username})
 
@@ -166,9 +182,10 @@ def get_params(
     days: int | None = None,
     limit: int | None = None,
     offset: int = 0,
+    db: Session = Depends(get_session),
 ):
     check_for_force_login(current_user)
-    return params.get_by_type(current_user.id, aquarium, type, days, limit, offset)
+    return params.get_by_type(db, current_user.id, aquarium, type, days, limit, offset)
 
 
 @app.delete("/params/{param_id}")

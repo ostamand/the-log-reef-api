@@ -10,7 +10,7 @@ def get_for_all(
     # get all param types with at least one value
     # get summaries per type
     summary = {}
-    param_types = params.get_type_by_user(user_id, aquarium_name)
+    param_types = params.get_type_by_user(db, user_id, aquarium_name)
     for param_type in param_types:
         summary[param_type] = get_by_type(db, user_id, aquarium_name, param_type)
     return summary
@@ -37,7 +37,7 @@ def get_by_type(
     }
 
     # get last two info
-    last_params = params.get_by_type(user_id, aquarium_name, param_type, limit=2)
+    last_params = params.get_by_type(db, user_id, aquarium_name, param_type, limit=2)
 
     for param in last_params:
         summary["values"].append(float(param.value))

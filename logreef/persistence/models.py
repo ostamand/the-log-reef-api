@@ -93,6 +93,21 @@ class Units(Base):
     display_name = mapped_column(String, nullable=False)
 
 
+class Message(Base):
+    __tablename__ = "messages"
+
+    id = mapped_column(Integer, primary_key=True)
+    source = mapped_column(String, nullable=True)
+    user_id = mapped_column(Integer, ForeignKey(User.id))
+    full_name = mapped_column(String, nullable=True)
+    email = mapped_column(String, nullable=False)
+    subject = mapped_column(String, nullable=True)
+    message = mapped_column(String, nullable=False)
+    sent_on = mapped_column(DateTime, nullable=False)
+    processed = mapped_column(Boolean, nullable=True)
+    processed_on = mapped_column(DateTime, nullable=True)
+
+
 class Additives(Base):
     __tablename__ = "additives"
 

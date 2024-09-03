@@ -10,8 +10,8 @@ Base = declarative_base()
 
 class Database:
 
-    def __init__(self):
-        self.db_url = get_config(ConfigAPI.DB_URL)
+    def __init__(self, db_url: str | None = None):
+        self.db_url = get_config(ConfigAPI.DB_URL) if db_url is None else db_url
         self.engine = None
         self.session = None
 

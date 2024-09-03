@@ -57,8 +57,8 @@ class ParamInfo(BaseModel):
     test_kit_display_name: str
     value: float
     unit: str
-    note: str | None
     timestamp: datetime
+    note: str | None
     created_on: datetime
     updated_on: datetime
 
@@ -82,6 +82,15 @@ class ParamInfo(BaseModel):
 class ParamUpdate(BaseModel):
     value: float | None = None
     note: str | None = None
+
+
+class MessageCreate(BaseModel):
+    source: str | None = None
+    user_id: int | None = None
+    full_name: str | None = None
+    email: str
+    subject: str | None = None
+    message: str
 
 
 class WaterChangeCreate(BaseModel):
