@@ -76,7 +76,9 @@ def test_create_value(test_db):
 
     delete_from_db(test_db, paramValue)
 
-    latestValue = params.get_by_type(test_db, user.id, aquarium.name, param_type, limit=1)
+    latestValue = params.get_by_type(
+        test_db, user.id, aquarium.name, param_type, limit=1
+    )
 
     assert len(latestValue) == 0
 
@@ -230,25 +232,48 @@ def test_get_params_by_days(test_db):
         now_utc - timedelta(days=8),
     )
 
-    assert len(params.get_by_type(test_db, user.id, aquarium.name, ParamTypes.ALKALINITY)) == 4
     assert (
-        len(params.get_by_type(test_db, user.id, aquarium.name, ParamTypes.ALKALINITY, days=1))
+        len(params.get_by_type(test_db, user.id, aquarium.name, ParamTypes.ALKALINITY))
+        == 4
+    )
+    assert (
+        len(
+            params.get_by_type(
+                test_db, user.id, aquarium.name, ParamTypes.ALKALINITY, days=1
+            )
+        )
         == 2
     )
     assert (
-        len(params.get_by_type(test_db, user.id, aquarium.name, ParamTypes.ALKALINITY, days=2))
+        len(
+            params.get_by_type(
+                test_db, user.id, aquarium.name, ParamTypes.ALKALINITY, days=2
+            )
+        )
         == 2
     )
     assert (
-        len(params.get_by_type(test_db, user.id, aquarium.name, ParamTypes.ALKALINITY, days=4))
+        len(
+            params.get_by_type(
+                test_db, user.id, aquarium.name, ParamTypes.ALKALINITY, days=4
+            )
+        )
         == 3
     )
     assert (
-        len(params.get_by_type(test_db, user.id, aquarium.name, ParamTypes.ALKALINITY, days=7))
+        len(
+            params.get_by_type(
+                test_db, user.id, aquarium.name, ParamTypes.ALKALINITY, days=7
+            )
+        )
         == 3
     )
     assert (
-        len(params.get_by_type(test_db, user.id, aquarium.name, ParamTypes.ALKALINITY, days=9))
+        len(
+            params.get_by_type(
+                test_db, user.id, aquarium.name, ParamTypes.ALKALINITY, days=9
+            )
+        )
         == 4
     )
 

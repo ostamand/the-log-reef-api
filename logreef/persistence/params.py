@@ -17,9 +17,9 @@ from logreef.units.converter import convert_unit_for
 from logreef import schemas
 
 
-def get_type_by_user(db: Session, user_id: int, aquarium_name: str) -> list[str]:   
+def get_type_by_user(db: Session, user_id: int, aquarium_name: str) -> list[str]:
     sql = text(
-            """
+        """
             SELECT DISTINCT(param_types.name)
             FROM param_values
             JOIN users ON param_values.user_id = users.id
@@ -28,7 +28,7 @@ def get_type_by_user(db: Session, user_id: int, aquarium_name: str) -> list[str]
             WHERE param_values.user_id = :user_id
                 AND aquariums.name = :aquarium_name
             """
-        )
+    )
     result = db.execute(sql, {"user_id": user_id, "aquarium_name": aquarium_name})
     return [row[0] for row in result]
 
@@ -51,7 +51,7 @@ def create(
     test_kit: models.TestKit | str | TestKits | None = None,
     note: str | None = None,
     commit: bool = True,
-    convert_value: bool = True
+    convert_value: bool = True,
 ):
     now = datetime.now(timezone.utc)
 
@@ -187,17 +187,14 @@ def get_by_type(
     result = db.execute(sql, data)
     out = []
     for row in result:
-        out.append(
-            schemas.ParamInfo(**{cols[i]: item for i, item in enumerate(row)})
-        )
+        out.append(schemas.ParamInfo(**{cols[i]: item for i, item in enumerate(row)}))
     return out
 
 
-def get_param_by_id(user_id: int, param_id: int) -> schemas.ParamInfo:
+def get_param_by_id(db: Session, user_id: int, param_id: int) -> schemas.ParamInfo:
     cols = schemas.ParamInfo.get_fields()
-    with Database().get_engine().connect() as con:
-        sql = text(
-            """
+    sql = text(
+        """
         SELECT 
             v.id, 
             v.param_type_name, 
@@ -207,21 +204,21 @@ def get_param_by_id(user_id: int, param_id: int) -> schemas.ParamInfo:
             v.value, 
             param_types.unit AS unit,
             v.timestamp, 
-            v.note
+            v.note,
+            v.created_on,
+            v.updated_on
         FROM param_values AS v
         LEFT JOIN test_kits AS t ON v.test_kit_name = t.name 
         LEFT JOIN param_types ON v.param_type_name = param_types.name
         WHERE user_id = :user_id and id = :param_id
         LIMIT 1;
         """
-        )
-        result = con.execute(sql, {"param_id": param_id, "user_id": user_id})
-        data = [row for row in result]
-        if len(data) == 1:
-            return schemas.ParamInfo(
-                **{cols[i]: item for i, item in enumerate(data[0])}
-            )
-        return schemas.ParamInfo()
+    )
+    result = db.execute(sql, {"param_id": param_id, "user_id": user_id})
+    data = [row for row in result]
+    if len(data) == 1:
+        return schemas.ParamInfo(**{cols[i]: item for i, item in enumerate(data[0])})
+    return schemas.ParamInfo()
 
 
 def delete_by_id(db: Session, user_id: int, param_id: int):

@@ -213,9 +213,10 @@ def delete_param_by_id(
 def get_param_by_id(
     param_id: int,
     current_user: Annotated[schemas.User, Depends(get_current_user)],
+    db: Session = Depends(get_session),
 ):
     check_for_force_login(current_user)
-    return params.get_param_by_id(current_user.id, param_id)
+    return params.get_param_by_id(db, current_user.id, param_id)
 
 
 @app.put("/params/{param_id}")
