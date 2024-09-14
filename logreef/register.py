@@ -14,10 +14,10 @@ def register_user(
     fullname: str | None = None,
     email: str | None = None,
 ):
-    user_db = users.create(db, username, password, email=email, fullname=fullname)
-
-    if not user_db:
-        return False, {"detail": "Can't create user"}
+    try:
+        user_db = users.create(db, username, password, email=email, fullname=fullname)
+    except:
+        return False, {"detail": "Username or email already used."}
 
     # for now also create default aquarium for all new users
     default_aquarium = aquariums.create(db, user_db.id, DEFAULT_AQUARIUM_NAME)

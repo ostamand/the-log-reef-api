@@ -76,7 +76,7 @@ def create_new_user(
     except Exception as ex:
         #TODO delete user from db
         logger.error(ex)
-        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Could not send confirmation email, try again")
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Could not send confirmation email, please try again.")
 
     return data["user"]
 
