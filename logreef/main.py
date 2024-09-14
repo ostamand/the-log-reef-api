@@ -143,11 +143,12 @@ def login(
     if user_updates:
         users.update_by_id(db, user.id, **user_updates)
 
-    access_token = create_access_token(data={"username": user.username})
+    access_token, expires_date = create_access_token(data={"username": user.username})
 
     return schemas.Token(
         access_token=access_token,
         token_type="bearer",
+        expires_on=expires_date,
         is_demo=user.is_demo,
         is_admin=user.is_admin,
     )
