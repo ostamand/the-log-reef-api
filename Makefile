@@ -26,7 +26,7 @@ deploy:
 	./scripts/deploy.sh
 
 db:
-	docker-compose up -d --build db
+	docker compose up -d --build db
 
 dev:
 	db_url=postgresql://root:secret@127.0.0.1:5432/logreef uvicorn logreef.main:app

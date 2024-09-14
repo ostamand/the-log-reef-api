@@ -9,7 +9,7 @@ class User(Base):
 
     id = mapped_column(Integer, primary_key=True)
     username = mapped_column(String, unique=True, index=True)
-    email = mapped_column(String, nullable=True)
+    email = mapped_column(String, nullable=False, unique=True)
     fullname = mapped_column(String, nullable=True)
     hash_password = mapped_column(String)
     is_admin = mapped_column(Boolean)
@@ -17,16 +17,7 @@ class User(Base):
     created_on = mapped_column(DateTime)
     last_login_on = mapped_column(DateTime)
     force_login = mapped_column(Boolean, default=False)
-
-
-class RegisterAccessCode(Base):
-    __tablename__ = "register_access_codes"
-
-    id = mapped_column(Integer, primary_key=True)
-    user_id = mapped_column(Integer, ForeignKey(User.id), nullable=True)
-    created_on = mapped_column(DateTime, nullable=True)
-    used_on = mapped_column(DateTime, nullable=True)
-    key = mapped_column(String, nullable=False, unique=True)
+    verified = mapped_column(Boolean, default=False)
 
 
 class ParamType(Base):

@@ -1,6 +1,7 @@
 from typing import Annotated
 import logging
 from datetime import datetime, timezone
+from datetime import datetime, timezone
 
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
@@ -9,19 +10,22 @@ from sqlalchemy.orm import Session
 
 from logreef import schemas, __version__
 from logreef.persistence import users, params, aquariums, testkits, events, messages
+from logreef.user import get_current_user, get_me, check_for_demo, check_for_force_login
 from logreef import summary
 from logreef.persistence.database import get_session
-from logreef.security import create_access_token
-from logreef.user import get_current_user, get_me, check_for_demo, check_for_force_login
-from logreef.register import register_user, register_code_is_valid
+from logreef.security import create_access_token, verify_email_token, create_email_confirmation_token
+from logreef.user import get_current_user, get_me
+from logreef.register import register_user
 
 logging.getLogger("passlib").setLevel(logging.ERROR)
 
+logger = logging.getLogger(__name__)
 
 app = FastAPI()
 
 
 origins = ["*"]
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -47,31 +51,67 @@ async def read_users_me(
 
 
 @app.post("/register", response_model=schemas.User)
-def create_user_with_code(
-    data: schemas.RegisterUser, db: Session = Depends(get_session)
+def create_new_user(
+    req: schemas.RegisterUser, db: Session = Depends(get_session)
 ):
     ok, data = register_user(
         db,
-        username=data.username,
-        password=data.password,
-        register_code=data.register_access_code,
-        email=data.email,
-        fullname=data.fullname,
+        username=req.username,
+        password=req.password,
+        email=req.email,
+        fullname=req.fullname,
     )
+
     if not ok:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, detail=data["detail"])
+    
+    # send email confirmation email
+    try:
+        # get register token
+        email_token = create_email_confirmation_token(req.email)
+        logger.info(email_token)
+
+        # send confirmation email with token
+
+    except Exception as ex:
+        #TODO delete user from db
+        logger.error(ex)
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Could not send confirmation email, try again")
+
     return data["user"]
 
 
-@app.get("/register")
-def check_register(code: str | None = None, db: Session = Depends(get_session)):
-    response = {}
-    if code is not None:
-        if register_code_is_valid(db, code):
-            response["code"] = True
-        else:
-            response["code"] = False
-    return response
+@app.get("/confirm-email")
+def confirm_email(token: str, db: Session = Depends(get_session)):
+    email, ok = verify_email_token(token)
+    if not ok:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Confirmation email token is not valid"
+        )
+    ok = users.set_to_verified(db, email)
+    if not ok:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Confirmation failed, try again"
+        )
+    return {"detail": "User email confirmed"}
+
+
+@app.post("/messages")
+def save_message(
+    data: schemas.MessageCreate,
+    db: Session = Depends(get_session),
+):
+    return messages.create(
+        db,
+        data.email,
+        data.message,
+        source=data.source,
+        user_id=data.user_id,
+        full_name=data.full_name,
+        subject=data.subject,
+    )
 
 
 @app.post("/messages")

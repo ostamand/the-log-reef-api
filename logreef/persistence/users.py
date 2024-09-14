@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 
 from sqlalchemy.orm import Session
+from sqlalchemy import text
 
 from logreef.persistence import models
 from logreef.security import hash_password, verify_password
@@ -14,8 +15,10 @@ def create(
     fullname: str | None = None,
     is_demo: bool = False,
     is_admin: bool = False,
+    verified: bool = False
 ) -> models.User:
     now = datetime.now(timezone.utc)
+
     db_user = models.User(
         username=username,
         hash_password=hash_password(password),
@@ -26,14 +29,18 @@ def create(
         force_login=False,
         created_on=now,
         last_login_on=now,
+        verified=verified,
     )
+
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
+
     return db_user
 
 
 def get_by_username(db: Session, username: str):
+
     return db.query(models.User).filter(models.User.username == username).first()
 
 
@@ -62,5 +69,12 @@ def update_by_id(
     if force_login is not None:
         updates[models.User.force_login] = force_login
     db.query(models.User).filter(models.User.id == user_id).update(updates)
+    db.commit()
+    return True
+
+
+def set_to_verified(db: Session, email: str):
+    sql = text("UPDATE users SET verified = TRUE WHERE email = :email")
+    _ = db.execute(sql, {"email": email})
     db.commit()
     return True

@@ -37,9 +37,26 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None) -> t
     return encoded_jwt, expire
 
 
+def create_email_confirmation_token(email: str):
+    expire = datetime.now(timezone.utc) + timedelta(minutes=get_config(ConfigAPI.ACCESS_TOKEN_EXPIRE_MINUTES))
+    to_encode = {"email": email, "exp": expire}
+    return jwt.encode(to_encode, get_config(ConfigAPI.SECRET_KEY), algorithm=get_config(ConfigAPI.ALGORITHM))
+
+
 def get_payload_from_token(token: str) -> dict[str, Any]:
     return jwt.decode(
         token,
         get_config(ConfigAPI.SECRET_KEY),
         algorithms=[get_config(ConfigAPI.ALGORITHM)],
     )
+
+
+def verify_email_token(token: str):
+    try: 
+        payload = get_payload_from_token(token)
+        email = payload.get("email")
+        if email is None:
+            raise Exception()
+        return email, True
+    except:
+        return "", False
