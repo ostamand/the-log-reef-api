@@ -5,7 +5,6 @@ import pytest
 from logreef.summary import get_by_type, get_for_all
 from logreef.persistence.database import delete_from_db
 from logreef.persistence import params
-from logreef.config import TestKits
 from .helpers import (
     save_random_aquarium,
     save_random_user,
@@ -20,7 +19,7 @@ def test_can_get_summary_for_all_types(test_db):
     params.create(test_db, user.id, aquarium.id, "ph", 8.2)
     params.create(test_db, user.id, aquarium.id, "magnesium", 1200)
 
-    info = get_for_all(test_db, user.id)
+    info = get_for_all(test_db, user.id, aquarium.name)
     for type in ["alkalinity", "ph", "magnesium"]:
         assert type in info
 
@@ -50,6 +49,7 @@ def test_can_get_summary_for_type(test_db):
     summary = get_by_type(
         test_db,
         user.id,
+        aquarium.name,
         param_type_name,
     )
     keys = [
@@ -75,6 +75,7 @@ def test_can_get_summary_for_type(test_db):
     summary = get_by_type(
         test_db,
         user.id,
+        aquarium.name,
         param_type_name,
     )
     assert summary["count_last_week"] == 1

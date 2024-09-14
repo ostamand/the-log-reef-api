@@ -20,9 +20,9 @@ def verify_password(password: str, hash_password: str) -> bool:
     return pwd_context.verify(password, hash_password)
 
 
-def create_access_token(data: dict, expires_delta: timedelta | None = None):
+def create_access_token(data: dict, expires_delta: timedelta | None = None) -> tuple[str, datetime]:
     to_encode = data.copy()
-    if expires_delta:
+    if expires_delta is not None:
         expire = datetime.now(timezone.utc) + expires_delta
     else:
         expire = datetime.now(timezone.utc) + timedelta(
@@ -34,7 +34,7 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
         get_config(ConfigAPI.SECRET_KEY),
         algorithm=get_config(ConfigAPI.ALGORITHM),
     )
-    return encoded_jwt
+    return encoded_jwt, expire
 
 
 def get_payload_from_token(token: str) -> dict[str, Any]:

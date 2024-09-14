@@ -47,7 +47,7 @@ api_configs = {
     ConfigAPI.SECRET_KEY: "N5fkubrSj2eV7bXZ4JNMoZEvN2WFZIS56TfRLEx6TxA",  # openssl rand -base64 32, production overriden thu env. variables
     ConfigAPI.ALGORITHM: "HS256",
     ConfigAPI.DB_URL: "sqlite:///./logreef/logreef.db",
-    ConfigAPI.ACCESS_TOKEN_EXPIRE_MINUTES: 24 * 60,
+    ConfigAPI.ACCESS_TOKEN_EXPIRE_MINUTES: 24 * 60,  # expires after 1 day
     ConfigAPI.TEST_USERNAME: "test",
     ConfigAPI.TEST_PASSWORD: "test",
     ConfigAPI.TEST_AQUARIUM_NAME: "test",

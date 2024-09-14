@@ -14,21 +14,23 @@ from logreef.config import (
     get_test_kit,
 )
 from logreef.units.converter import convert_unit_for
+from logreef import schemas
 
 
-def get_type_by_user(user_id: int) -> list[str]:
-    with Database().get_engine().connect() as con:
-        sql = text(
-            """
+def get_type_by_user(db: Session, user_id: int, aquarium_name: str) -> list[str]:
+    sql = text(
+        """
             SELECT DISTINCT(param_types.name)
             FROM param_values
             JOIN users ON param_values.user_id = users.id
             JOIN param_types ON param_values.param_type_name = param_types.name
-            WHERE user_id = :user_id
+            JOIN aquariums ON param_values.aquarium_id = aquariums.id
+            WHERE param_values.user_id = :user_id
+                AND aquariums.name = :aquarium_name
             """
-        )
-        result = con.execute(sql, {"user_id": user_id})
-        return [row[0] for row in result]
+    )
+    result = db.execute(sql, {"user_id": user_id, "aquarium_name": aquarium_name})
+    return [row[0] for row in result]
 
 
 def get_type(db: Session, name: str):
@@ -47,10 +49,13 @@ def create(
     value: float,
     timestamp: datetime | None = None,
     test_kit: models.TestKit | str | TestKits | None = None,
+    note: str | None = None,
     commit: bool = True,
+    convert_value: bool = True,
 ):
-    if not timestamp:
-        timestamp = datetime.now(timezone.utc)
+    now = datetime.now(timezone.utc)
+
+    timestamp = now if not timestamp else timestamp
 
     if type(param_type) is models.ParamType:
         param_type = get_param_type(param_type.name)
@@ -73,9 +78,12 @@ def create(
 
     # convert value
     # TODO: Also save value not converted?
-    value_converted = convert_unit_for(param_type, test_kit, value)
-    if value_converted is None:
-        raise Exception(f"{param_type.value} and/or {test_kit.value} not supported")
+    if convert_value:
+        value_converted = convert_unit_for(param_type, test_kit, value)
+        if value_converted is None:
+            raise Exception(f"{param_type.value} and/or {test_kit.value} not supported")
+    else:
+        value_converted = value
 
     # TODO check if user is owner of aquarium?
     db_value = models.ParamValue(
@@ -85,6 +93,9 @@ def create(
         test_kit_name=test_kit.value,
         value=value_converted,
         timestamp=timestamp,
+        created_on=now,
+        updated_on=now,
+        note=note,
     )
 
     if commit:
@@ -123,63 +134,91 @@ def get_stats_by_type_last_n_days(
 def get_by_type(
     db: Session,
     user_id: int,
+    aquarium: str,
     param_type: str | ParamTypes,
     days: int | None = None,
     limit: int | None = None,
     offset: int | None = None,
-):
+) -> list[schemas.ParamInfo]:
+    cols = schemas.ParamInfo.get_fields()
+    query = """
+    SELECT 
+        p.id, 
+        p.param_type_name, 
+        param_types.display_name AS param_type_display_name, 
+        p.test_kit_name, 
+        t.display_name AS test_kit_display_name, 
+        p.value,
+        param_types.unit, 
+        p.timestamp, 
+        p.note,
+        p.created_on,
+        p.updated_on
+    FROM param_values AS p
+    LEFT JOIN test_kits AS t ON p.test_kit_name = t.name
+    LEFT JOIN param_types ON p.param_type_name = param_types.name
+    LEFT JOIN aquariums ON p.aquarium_id =aquariums.id
+    WHERE p.user_id = :user_id
+        AND p.param_type_name = :param_type_name
+        AND aquariums.name = :aquarium_name
+    """
     if type(param_type) is ParamTypes:
         param_type = param_type.value
 
-    raw_query = (
-        db.query(models.ParamValue)
-        .join(models.ParamType)
-        .where(models.ParamValue.user_id == user_id)
-        .where(models.ParamType.name == param_type)
-    )
+    data = {
+        "param_type_name": param_type,
+        "user_id": user_id,
+        "aquarium_name": aquarium,
+    }
+    if days is not None:
+        query += " AND p.timestamp > current_date - interval ':days' day"
+        data["days"] = days
 
-    if days is not None and days > 0:
-        utc_now = datetime.utcnow()
-        raw_query = raw_query.where(
-            models.ParamValue.timestamp > utc_now - timedelta(days=days)
-        )
-
-    raw_query = raw_query.order_by(models.ParamValue.timestamp.desc())
+    query += " ORDER BY p.timestamp DESC"
 
     if limit is not None:
-        raw_query = raw_query.limit(limit)
-
+        query += " LIMIT :limit"
+        data["limit"] = limit
     if offset is not None:
-        raw_query = raw_query.offset(offset)
+        query += " OFFSET :offset"
+        data["offset"] = offset
 
-    return raw_query.all()
+    sql = text(query)
+    result = db.execute(sql, data)
+    out = []
+    for row in result:
+        out.append(schemas.ParamInfo(**{cols[i]: item for i, item in enumerate(row)}))
+    return out
 
 
-def get_info_by_id(user_id: int, param_id: int):
-    with Database().get_engine().connect() as con:
-        sql = text(
-            """
-        SELECT v.id, v.param_type_name, t.name AS testkit_name, t.display_name AS testkit_display_name, t.display_unit as testkit_display_unit, v.value, v.timestamp
+def get_param_by_id(db: Session, user_id: int, param_id: int) -> schemas.ParamInfo:
+    cols = schemas.ParamInfo.get_fields()
+    sql = text(
+        """
+        SELECT 
+            v.id, 
+            v.param_type_name, 
+            param_types.display_name AS param_type_display_name,
+            t.name AS test_kit_name, 
+            t.display_name AS test_kit_display_name, 
+            v.value, 
+            param_types.unit AS unit,
+            v.timestamp, 
+            v.note,
+            v.created_on,
+            v.updated_on
         FROM param_values AS v
-        JOIN test_kits AS t ON v.test_kit_name = t.name
+        LEFT JOIN test_kits AS t ON v.test_kit_name = t.name 
+        LEFT JOIN param_types ON v.param_type_name = param_types.name
         WHERE user_id = :user_id and id = :param_id
         LIMIT 1;
         """
-        )
-        result = con.execute(sql, {"param_id": param_id, "user_id": user_id})
-        cols = [
-            "id",
-            "param_type_name",
-            "testkit_name",
-            "testkit_display_name",
-            "testkit_display_unit",
-            "value",
-            "timestamp",
-        ]
-        data = [row for row in result]
-        if len(data) == 1:
-            return {cols[i]: item for i, item in enumerate(data[0])}
-        return {}
+    )
+    result = db.execute(sql, {"param_id": param_id, "user_id": user_id})
+    data = [row for row in result]
+    if len(data) == 1:
+        return schemas.ParamInfo(**{cols[i]: item for i, item in enumerate(data[0])})
+    return schemas.ParamInfo()
 
 
 def delete_by_id(db: Session, user_id: int, param_id: int):
@@ -193,10 +232,22 @@ def delete_by_id(db: Session, user_id: int, param_id: int):
     return rows
 
 
-def update_by_id(db: Session, user_id: int, param_id: int, updatedValue: float):
+def update_by_id(
+    db: Session,
+    user_id: int,
+    param_id: int,
+    value: float | None = None,
+    note: str | None = None,
+):
+    updates = {models.ParamValue.updated_on: datetime.now(timezone.utc)}
+    if value is not None:
+        updates[models.ParamValue.value] = value
+    if note is not None:
+        updates[models.ParamValue.note] = note
+
     db.query(models.ParamValue).filter(models.ParamValue.user_id == user_id).filter(
         models.ParamValue.id == param_id
-    ).update({models.ParamValue.value: updatedValue})
+    ).update(updates)
     db.commit()
     return (
         db.query(models.ParamValue)

@@ -9,10 +9,14 @@ class User(Base):
 
     id = mapped_column(Integer, primary_key=True)
     username = mapped_column(String, unique=True, index=True)
-    fullname = mapped_column(String, nullable=True)
     email = mapped_column(String, nullable=True)
+    fullname = mapped_column(String, nullable=True)
     hash_password = mapped_column(String)
-    admin = mapped_column(Boolean)
+    is_admin = mapped_column(Boolean)
+    is_demo = mapped_column(Boolean)
+    created_on = mapped_column(DateTime)
+    last_login_on = mapped_column(DateTime)
+    force_login = mapped_column(Boolean, default=False)
 
 
 class RegisterAccessCode(Base):
@@ -29,6 +33,7 @@ class ParamType(Base):
     __tablename__ = "param_types"
     name = mapped_column(String, primary_key=True)
     unit = mapped_column(String, nullable=False)
+    display_name = mapped_column(String, nullable=False)
 
 
 class TestKit(Base):
@@ -51,8 +56,10 @@ class Aquarium(Base):
     id = mapped_column(Integer, primary_key=True)
     user_id = mapped_column(Integer, ForeignKey(User.id))
     name = mapped_column(String, nullable=False)
+    description = mapped_column(String)
     started_on = mapped_column(DateTime)
-
+    created_on = mapped_column(DateTime)
+    updated_on = mapped_column(DateTime)
     user: Mapped[User] = relationship("User", foreign_keys="Aquarium.user_id")
 
 
@@ -65,7 +72,10 @@ class ParamValue(Base):
     aquarium_id = mapped_column(Integer, ForeignKey(Aquarium.id))
     test_kit_name = mapped_column(String, ForeignKey(TestKit.name))
     value = mapped_column(Numeric, nullable=False)
+    note = mapped_column(String, nullable=True)
     timestamp = mapped_column(DateTime, nullable=False)
+    created_on = mapped_column(DateTime, nullable=False)
+    updated_on = mapped_column(DateTime, nullable=False)
 
     param_type: Mapped[ParamType] = relationship(
         "ParamType", foreign_keys="ParamValue.param_type_name"
@@ -81,6 +91,21 @@ class Units(Base):
 
     name = mapped_column(String, primary_key=True)
     display_name = mapped_column(String, nullable=False)
+
+
+class Message(Base):
+    __tablename__ = "messages"
+
+    id = mapped_column(Integer, primary_key=True)
+    source = mapped_column(String, nullable=True)
+    user_id = mapped_column(Integer, ForeignKey(User.id))
+    full_name = mapped_column(String, nullable=True)
+    email = mapped_column(String, nullable=False)
+    subject = mapped_column(String, nullable=True)
+    message = mapped_column(String, nullable=False)
+    sent_on = mapped_column(DateTime, nullable=False)
+    processed = mapped_column(Boolean, nullable=True)
+    processed_on = mapped_column(DateTime, nullable=True)
 
 
 class Additives(Base):

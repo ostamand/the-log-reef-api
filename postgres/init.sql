@@ -10,6 +10,7 @@ DROP TABLE IF EXISTS event_dosings;
 DROP TABLE IF EXISTS event_miscs;
 DROP TABLE IF EXISTS event_water_changes;
 DROP TABLE IF EXISTS events;
+DROP TABLE IF EXISTS messages;
 
 CREATE TABLE users (
 	id SERIAL PRIMARY KEY,
@@ -17,7 +18,11 @@ CREATE TABLE users (
 	email VARCHAR(255),
 	fullname VARCHAR(255),
 	hash_password VARCHAR(255) NOT NULL,
-	admin BOOLEAN NOT NULL DEFAULT false
+	is_admin BOOLEAN NOT NULL DEFAULT false,
+	is_demo BOOLEAN NOT NULL DEFAULT false,
+	created_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	last_login_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	force_login BOOLEAN DEFAULT false
 );
 
 CREATE TABLE register_access_codes (
@@ -29,8 +34,9 @@ CREATE TABLE register_access_codes (
 );
 
 CREATE TABLE param_types (
-	name VARCHAR(255) PRIMARY KEY,
-	unit VARCHAR(255) NOT NULL
+	name VARCHAR(20) PRIMARY KEY,
+	unit VARCHAR(10) NOT NULL,
+	display_name VARCHAR(20)
 );
 
 CREATE TABLE test_kits (
@@ -45,8 +51,11 @@ CREATE TABLE test_kits (
 CREATE TABLE aquariums (
 	id SERIAL PRIMARY KEY,
 	user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-	name VARCHAR(255) NOT NULL,
-	started_on TIMESTAMP
+	name VARCHAR(50) NOT NULL,
+	description VARCHAR(255),
+	started_on TIMESTAMP,
+	created_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	updated_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE param_values (
@@ -56,7 +65,10 @@ CREATE TABLE param_values (
 	param_type_name VARCHAR(255) REFERENCES param_types(name) ON DELETE CASCADE,
 	test_kit_name VARCHAR(255) NOT NULL REFERENCES test_kits(name) ON DELETE CASCADE,
 	value NUMERIC NOT NULL,
-	timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+	note VARCHAR(255),
+	timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	created_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	updated_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE units (
@@ -99,6 +111,19 @@ CREATE TABLE events (
 	timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE messages (
+	id SERIAL PRIMARY KEY,
+	source VARCHAR(25),
+	user_id INTEGER REFERENCES users(id),
+	full_name VARCHAR(100),
+	email VARCHAR(255) NOT NULL,
+	subject VARCHAR(100),
+	message VARCHAR(255) NOT NULL,
+	sent_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	processed BOOLEAN,
+	processed_on TIMESTAMP
+);
+
 INSERT INTO units (name, display_name)
 VALUES
 	('mL', 'milliliters'),
@@ -113,14 +138,14 @@ VALUES
 	('kalkwasser', 'Kalkwasser'),
 	('tropic-marin-np-bacto-balance', 'Tropic Marin NP-Bacto-Balance');
 
-INSERT INTO param_types (name, unit)
+INSERT INTO param_types (name, unit, display_name)
 VALUES 
-	('alkalinity', 'dkh'),
-	('calcium', 'ppm'),
-	('magnesium', 'ppm'),
-	('phosphate', 'ppm'),
-	('nitrate', 'ppm'),
-	('ph', 'pH');
+	('alkalinity', 'dkh', 'Alkalinity'),
+	('calcium', 'ppm', 'Calcium'),
+	('magnesium', 'ppm', 'Magnesium'),
+	('phosphate', 'ppm', 'Phosphate'),
+	('nitrate', 'ppm', 'Nitrate'),
+	('ph', 'pH', 'pH');
 
 INSERT INTO test_kits (name, param_type_name, display_name, display_unit, is_default)
 VALUES

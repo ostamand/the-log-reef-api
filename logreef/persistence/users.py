@@ -1,3 +1,5 @@
+from datetime import datetime, timezone
+
 from sqlalchemy.orm import Session
 
 from logreef.persistence import models
@@ -10,13 +12,20 @@ def create(
     password: str,
     email: str | None = None,
     fullname: str | None = None,
+    is_demo: bool = False,
+    is_admin: bool = False,
 ) -> models.User:
+    now = datetime.now(timezone.utc)
     db_user = models.User(
         username=username,
         hash_password=hash_password(password),
         email=email,
         fullname=fullname,
-        admin=False,
+        is_admin=is_admin,
+        is_demo=is_demo,
+        force_login=False,
+        created_on=now,
+        last_login_on=now,
     )
     db.add(db_user)
     db.commit()
@@ -39,3 +48,19 @@ def authenticate(db: Session, username: str, password: str) -> models.User | boo
     if not verify_password(password, user.hash_password):
         return False
     return user
+
+
+def update_by_id(
+    db: Session,
+    user_id: int,
+    last_login_on: datetime | None = None,
+    force_login: bool | None = None,
+) -> bool:
+    updates = {}
+    if last_login_on is not None:
+        updates[models.User.last_login_on] = datetime.now(timezone.utc)
+    if force_login is not None:
+        updates[models.User.force_login] = force_login
+    db.query(models.User).filter(models.User.id == user_id).update(updates)
+    db.commit()
+    return True

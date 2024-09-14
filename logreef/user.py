@@ -13,6 +13,23 @@ from logreef import schemas
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
 
+def check_for_demo(user: schemas.User):
+    if user.is_demo:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Demo user not allowed",
+        )
+    return False
+
+
+def check_for_force_login(user: schemas.User):
+    if user.force_login:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Login required"
+        )
+    return False
+
+
 def get_current_user(
     token: Annotated[str, Depends(oauth2_scheme)], db: Session = Depends(get_session)
 ):
@@ -53,7 +70,9 @@ def get_me(db: Session, user: int | models.User) -> schemas.Me:
     me = schemas.Me(
         id=user.id,
         username=user.username,
-        admin=user.admin,
+        is_admin=user.is_admin,
+        is_demo=user.is_demo,
         aquariums=all_aquariums,
+        created_on=user.created_on,
     )
     return me

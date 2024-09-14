@@ -24,5 +24,7 @@ services:
       - db
     environment:
       - db_url=postgresql://root:secret@db:5432/logreef
+    volumes:
+      - ./:/code/
     ports:
       - "8000:80"

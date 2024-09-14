@@ -8,7 +8,12 @@ from logreef.persistence import models
 class Aquarium(BaseModel):
     id: int
     name: str
-    started_on: datetime
+
+
+class AquariumCreate(BaseModel):
+    name: str
+    started_on: datetime | None
+    description: str | None
 
 
 class UserBase(BaseModel):
@@ -24,7 +29,9 @@ class RegisterUser(UserBase):
 
 class User(UserBase):
     id: int
-    admin: bool
+    is_admin: bool
+    is_demo: bool
+    created_on: datetime
 
     class Config:
         from_attributes = True
@@ -40,6 +47,50 @@ class ParamCreate(BaseModel):
     aquarium: int | str
     value: float
     timestamp: datetime | None = None
+
+
+class ParamInfo(BaseModel):
+    id: int
+    param_type_name: str
+    param_type_display_name: str
+    test_kit_name: str
+    test_kit_display_name: str
+    value: float
+    unit: str
+    timestamp: datetime
+    note: str | None
+    created_on: datetime
+    updated_on: datetime
+
+    @classmethod
+    def get_fields(cls):
+        return [
+            "id",
+            "param_type_name",
+            "param_type_display_name",
+            "test_kit_name",
+            "test_kit_display_name",
+            "value",
+            "unit",
+            "timestamp",
+            "note",
+            "created_on",
+            "updated_on",
+        ]
+
+
+class ParamUpdate(BaseModel):
+    value: float | None = None
+    note: str | None = None
+
+
+class MessageCreate(BaseModel):
+    source: str | None = None
+    user_id: int | None = None
+    full_name: str | None = None
+    email: str
+    subject: str | None = None
+    message: str
 
 
 class WaterChangeCreate(BaseModel):
@@ -84,10 +135,9 @@ class EventWaterChange(BaseModel):
         )
 
 
-class AquariumCreate(BaseModel):
-    name: str
-
-
 class Token(BaseModel):
     access_token: str
     token_type: str
+    is_demo: bool
+    is_admin: bool
+    expires_on: datetime

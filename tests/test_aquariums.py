@@ -27,11 +27,15 @@ def test_create_aquarium(test_db):
     assert user.username == username
 
     # create aquarium for test user
-    aquarium = aquariums.create(test_db, user.id, aquarium_name)
+    test_description = "test"
+    aquarium = aquariums.create(
+        test_db, user.id, aquarium_name, description=test_description
+    )
 
     assert aquarium is not None
     assert aquarium.name == aquarium_name
     assert aquarium.user_id == user.id
+    assert aquarium.description == test_description
 
     # delete test user from db
     delete_from_db(test_db, user)
@@ -43,3 +47,26 @@ def test_create_aquarium(test_db):
     # check if aquarium still exists
     aquarium_deleted = aquariums.get_by_name(test_db, user.id, aquarium_name)
     assert aquarium_deleted is None
+
+
+def test_can_update_aquarium(test_db):
+    user, aquarium = save_random_user_and_aquarium(test_db)
+
+    description_updated = "description_updated"
+    name_updated = "name_updated"
+    aquariums.update_by_id(
+        test_db,
+        user.id,
+        aquarium.id,
+        description=description_updated,
+        name=name_updated,
+    )
+
+    aquarium_updated = aquariums.get_by_name(test_db, user.id, name_updated)
+    assert aquarium_updated is not None
+    assert aquarium_updated.id == aquarium.id
+    assert aquarium.description == description_updated
+    assert aquarium.name == name_updated
+    assert aquarium_updated.updated_on > aquarium.created_on
+
+    delete_from_db(test_db, user)

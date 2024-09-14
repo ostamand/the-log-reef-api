@@ -1,5 +1,6 @@
 from typing import Annotated
 import logging
+from datetime import datetime, timezone
 
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
@@ -7,11 +8,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
 from logreef import schemas, __version__
-from logreef.persistence import users, params, aquariums, testkits, events
+from logreef.persistence import users, params, aquariums, testkits, events, messages
 from logreef import summary
 from logreef.persistence.database import get_session
 from logreef.security import create_access_token
-from logreef.user import get_current_user, get_me
+from logreef.user import get_current_user, get_me, check_for_demo, check_for_force_login
 from logreef.register import register_user, register_code_is_valid
 
 logging.getLogger("passlib").setLevel(logging.ERROR)
@@ -41,6 +42,7 @@ async def read_users_me(
     current_user: Annotated[schemas.User, Depends(get_current_user)],
     db: Session = Depends(get_session),
 ):
+    check_for_force_login(current_user)
     return get_me(db, current_user)
 
 
@@ -72,12 +74,30 @@ def check_register(code: str | None = None, db: Session = Depends(get_session)):
     return response
 
 
+@app.post("/messages")
+def save_message(
+    data: schemas.MessageCreate,
+    db: Session = Depends(get_session),
+):
+    return messages.create(
+        db,
+        data.email,
+        data.message,
+        source=data.source,
+        user_id=data.user_id,
+        full_name=data.full_name,
+        subject=data.subject,
+    )
+
+
 @app.post("/aquariums")
 def create_aquarium(
     current_user: Annotated[schemas.User, Depends(get_current_user)],
     data: schemas.AquariumCreate,
     db: Session = Depends(get_session),
 ):
+    check_for_force_login(current_user)
+    check_for_demo(current_user)
     aquarium_db = aquariums.get_by_name(db, current_user.id, data.name)
     if aquarium_db is not None:
         raise HTTPException(
@@ -92,6 +112,7 @@ def get_aquariums(
     current_user: Annotated[schemas.User, Depends(get_current_user)],
     db: Session = Depends(get_session),
 ):
+    check_for_force_login(current_user)
     return aquariums.get_all(db, current_user.id)
 
 
@@ -101,14 +122,36 @@ def login(
     db: Session = Depends(get_session),
 ) -> schemas.Token:
     user = users.authenticate(db, form_data.username, form_data.password)
+
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    access_token = create_access_token(data={"username": user.username})
-    return schemas.Token(access_token=access_token, token_type="bearer")
+
+    user_updates = {}
+
+    # update force login if needed
+    if user.force_login:
+        user_updates["force_login"] = False
+
+    # update last login time
+    if not user.is_demo:
+        user_updates["last_login_on"] = datetime.now(timezone.utc)
+
+    if user_updates:
+        users.update_by_id(db, user.id, **user_updates)
+
+    access_token, expires_date = create_access_token(data={"username": user.username})
+
+    return schemas.Token(
+        access_token=access_token,
+        token_type="bearer",
+        expires_on=expires_date,
+        is_demo=user.is_demo,
+        is_admin=user.is_admin,
+    )
 
 
 @app.post("/params")
@@ -118,8 +161,8 @@ def create_param(
     db: Session = Depends(get_session),
     commit: bool = True,
 ):
-    # TODO: unit conversion
-    # TODO: add optional time to data
+    check_for_force_login(current_user)
+    check_for_demo(current_user)
     return params.create(
         db,
         current_user.id,
@@ -134,14 +177,16 @@ def create_param(
 
 @app.get("/params/")
 def get_params(
+    aquarium: str,
     current_user: Annotated[schemas.User, Depends(get_current_user)],
-    db: Session = Depends(get_session),
     type: str | None = None,
     days: int | None = None,
     limit: int | None = None,
     offset: int = 0,
+    db: Session = Depends(get_session),
 ):
-    return params.get_by_type(db, current_user.id, type, days, limit, offset)
+    check_for_force_login(current_user)
+    return params.get_by_type(db, current_user.id, aquarium, type, days, limit, offset)
 
 
 @app.delete("/params/{param_id}")
@@ -150,6 +195,8 @@ def delete_param_by_id(
     current_user: Annotated[schemas.User, Depends(get_current_user)],
     db: Session = Depends(get_session),
 ):
+    check_for_force_login(current_user)
+    check_for_demo(current_user)
     try:
         deleted = params.delete_by_id(db, current_user.id, param_id)
     except:
@@ -167,29 +214,35 @@ def delete_param_by_id(
 def get_param_by_id(
     param_id: int,
     current_user: Annotated[schemas.User, Depends(get_current_user)],
+    db: Session = Depends(get_session),
 ):
-    return params.get_info_by_id(current_user.id, param_id)
+    check_for_force_login(current_user)
+    return params.get_param_by_id(db, current_user.id, param_id)
 
 
 @app.put("/params/{param_id}")
 def update_param_by_id(
     param_id: int,
-    value: float,
     current_user: Annotated[schemas.User, Depends(get_current_user)],
+    data: schemas.ParamUpdate,
     db: Session = Depends(get_session),
 ):
-    return params.update_by_id(db, current_user.id, param_id, value)
+    check_for_force_login(current_user)
+    check_for_demo(current_user)
+    return params.update_by_id(db, current_user.id, param_id, **data.model_dump())
 
 
 @app.get("/summary/")
 def get_summary(
+    aquarium: str,
     current_user: Annotated[schemas.User, Depends(get_current_user)],
     db: Session = Depends(get_session),
     type: str | None = None,
 ):
+    check_for_force_login(current_user)
     if type is not None:
-        return {type: summary.get_by_type(db, current_user.id, type)}
-    return summary.get_for_all(db, current_user.id)
+        return {type: summary.get_by_type(db, current_user.id, aquarium, type)}
+    return summary.get_for_all(db, current_user.id, aquarium)
 
 
 @app.get("/testkits/")
@@ -215,6 +268,7 @@ def create_water_change(
     data: schemas.WaterChangeCreate,
     db: Session = Depends(get_session),
 ):
+    check_for_force_login(current_user)
     event_db = events.create_water_change(
         db,
         current_user.id,
@@ -233,5 +287,6 @@ def get_water_changes(
     db: Session = Depends(get_session),
     days: int | None = None,
 ):
+    check_for_force_login(current_user)
     water_changes_db = events.get_water_changes(db, current_user.id, days=days)
     return list(map(lambda x: schemas.EventWaterChange.convert(x), water_changes_db))
