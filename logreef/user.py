@@ -46,7 +46,7 @@ def get_current_user(
     except:
         raise credentials_exception
     user = users.get_by_username(db, username=username)
-    if user is None:
+    if user is None or not user.verified: # should not happen that a non verified user gets a token, but adding anyway
         raise credentials_exception
     return user
 

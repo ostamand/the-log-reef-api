@@ -2,6 +2,7 @@ from typing import Annotated
 import logging
 from datetime import datetime, timezone
 from datetime import datetime, timezone
+import requests
 
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
@@ -13,7 +14,7 @@ from logreef.persistence import users, params, aquariums, testkits, events, mess
 from logreef.user import get_current_user, get_me, check_for_demo, check_for_force_login
 from logreef import summary
 from logreef.persistence.database import get_session
-from logreef.security import create_access_token, verify_email_token, create_email_confirmation_token
+from logreef.security import create_access_token, verify_email_token, create_email_confirmation_token, send_confirmation_email
 from logreef.user import get_current_user, get_me
 from logreef.register import register_user
 
@@ -69,9 +70,9 @@ def create_new_user(
     try:
         # get register token
         email_token = create_email_confirmation_token(req.email)
-        logger.info(email_token)
 
         # send confirmation email with token
+        _, ok = send_confirmation_email(email_token)
 
     except Exception as ex:
         #TODO delete user from db
@@ -166,7 +167,7 @@ def login(
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password",
+            detail="Incorrect username, password or account not verified",
             headers={"WWW-Authenticate": "Bearer"},
         )
 

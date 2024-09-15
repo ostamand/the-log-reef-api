@@ -52,6 +52,8 @@ def authenticate(db: Session, username: str, password: str) -> models.User | boo
     user = get_by_username(db, username)
     if not user:
         return False
+    if not user.verified:
+        return False
     if not verify_password(password, user.hash_password):
         return False
     return user

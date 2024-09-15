@@ -1,15 +1,27 @@
 from typing import Any
-
 from datetime import datetime
 from datetime import timedelta, timezone
-
+\
+import requests
 from passlib.context import CryptContext
 from jose import jwt
 
 from logreef.config import get_config, ConfigAPI
 
+SEND_EMAIL_URL = "https://thereeflog-function.azurewebsites.net/api/confirmation-email"
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+
+def send_confirmation_email(token) -> tuple[str, bool]:
+    payload = {
+        "token": token
+    }
+    headers = {
+        "Content-Type": "application/json"
+    }
+    response = requests.post(SEND_EMAIL_URL, json=payload, headers=headers)
+    return response.text, response.ok
 
 
 def hash_password(password: str) -> str:
