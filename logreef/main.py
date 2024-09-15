@@ -96,7 +96,7 @@ def confirm_email(token: str, db: Session = Depends(get_session)):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Confirmation failed, try again"
         )
-    return {"detail": "User email confirmed"}
+    return {"detail": "User email confirmed", "email": email}
 
 
 @app.post("/messages")
