@@ -22,8 +22,9 @@ def get_random_string(length: int):
 def save_random_user(db: Session, is_demo=False) -> models.User:
     username = get_random_string(10)
     password = get_random_string(10)
+    email = get_random_string(5) + "@" + get_random_string(3) + ".com"
     # create new test user
-    user = users.create(db, username, password, is_demo=is_demo)
+    user = users.create(db, username, password, email=email, is_demo=is_demo)
     return user
 
 

@@ -70,6 +70,7 @@ def get_me(db: Session, user: int | models.User) -> schemas.Me:
     me = schemas.Me(
         id=user.id,
         username=user.username,
+        email=user.email,
         is_admin=user.is_admin,
         is_demo=user.is_demo,
         aquariums=all_aquariums,

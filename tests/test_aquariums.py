@@ -19,10 +19,11 @@ def test_get_by_username(test_db):
 def test_create_aquarium(test_db):
     username = get_random_string(10)
     password = get_random_string(10)
+    email = get_random_string(5) + "@" + get_random_string(3) + ".com"
     aquarium_name = get_random_string(10)
 
     # create new test user
-    user = users.create(test_db, username, password)
+    user = users.create(test_db, username, password, email=email)
     assert user
     assert user.username == username
 

@@ -1,8 +1,6 @@
 from typing import Annotated
 import logging
 from datetime import datetime, timezone
-from datetime import datetime, timezone
-import requests
 
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm

@@ -5,7 +5,6 @@ from sqlalchemy import text
 
 from logreef.persistence import models
 from logreef.persistence import aquariums
-from logreef.persistence.database import Database
 from logreef.config import (
     TestKits,
     ParamTypes,

@@ -8,34 +8,26 @@ from logreef.config import get_config, ConfigAPI
 Base = declarative_base()
 
 
-class Database:
-
-    def __init__(self, db_url: str | None = None):
-        self.db_url = get_config(ConfigAPI.DB_URL) if db_url is None else db_url
-        self.engine = None
-        self.session = None
-
-    def get_session(self):
-        if self.session is None:
-            self.engine = self.get_engine()
-            self.session = scoped_session(
-                sessionmaker(autocommit=False, autoflush=False, bind=self.engine)
-            )
-        return self.session()
-
-    def get_engine(self):
-        if self.engine is None:
-            self.engine = create_engine(self.db_url)
-            Base.metadata.create_all(bind=self.engine)
-        return self.engine
+def get_scoped_session():
+    engine = create_engine(get_config(ConfigAPI.DB_URL))
+    Session = scoped_session(
+        sessionmaker(autocommit=False, autoflush=False, bind=engine)
+    )
+    return Session
 
 
 def get_session():
-    session = Database().get_session()
+    Session = get_scoped_session()
+    
     try:
+        session = Session()
         yield session
+    except Exception as e:
+        session.rollback()
+        raise e
     finally:
-        session.close()
+        Session.remove()
+        #session.close()
 
 
 def add_to_db(session: Session, model):
