@@ -8,8 +8,9 @@ from logreef.config import get_config, ConfigAPI
 Base = declarative_base()
 
 
-def get_scoped_session():
-    engine = create_engine(get_config(ConfigAPI.DB_URL))
+def get_scoped_session(db_url=None):
+    db_url =  db_url if db_url is not None else get_config(ConfigAPI.DB_URL)
+    engine = create_engine(db_url)
     Session = scoped_session(
         sessionmaker(autocommit=False, autoflush=False, bind=engine)
     )
@@ -18,7 +19,6 @@ def get_scoped_session():
 
 def get_session():
     Session = get_scoped_session()
-    
     try:
         session = Session()
         yield session
