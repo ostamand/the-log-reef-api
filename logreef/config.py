@@ -29,9 +29,6 @@ class ConfigAPI(Enum):
     ALGORITHM = "algorithm"
     DB_URL = "db_url"
     ACCESS_TOKEN_EXPIRE_MINUTES = "access_token_expire_minutes"
-    TEST_USERNAME = "test_username"
-    TEST_PASSWORD = "test_password"
-    TEST_AQUARIUM_NAME = "test_aquarium_name"
 
 
 default_test_kits = {
@@ -48,9 +45,6 @@ api_configs = {
     ConfigAPI.ALGORITHM: "HS256",
     ConfigAPI.DB_URL: "sqlite:///./logreef/logreef.db",
     ConfigAPI.ACCESS_TOKEN_EXPIRE_MINUTES: 24 * 60,  # expires after 1 day
-    ConfigAPI.TEST_USERNAME: "test",
-    ConfigAPI.TEST_PASSWORD: "test",
-    ConfigAPI.TEST_AQUARIUM_NAME: "test",
 }
 
 

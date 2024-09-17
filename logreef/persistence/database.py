@@ -9,7 +9,7 @@ Base = declarative_base()
 
 
 def get_scoped_session(db_url=None):
-    db_url =  db_url if db_url is not None else get_config(ConfigAPI.DB_URL)
+    db_url = db_url if db_url is not None else get_config(ConfigAPI.DB_URL)
     engine = create_engine(db_url)
     Session = scoped_session(
         sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -27,7 +27,7 @@ def get_session():
         raise e
     finally:
         Session.remove()
-        #session.close()
+        # session.close()
 
 
 def add_to_db(session: Session, model):

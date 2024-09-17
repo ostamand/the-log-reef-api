@@ -12,23 +12,28 @@ from logreef.persistence import users, params, aquariums, testkits, events, mess
 from logreef.user import get_current_user, get_me, check_for_demo, check_for_force_login
 from logreef import summary
 from logreef.persistence.database import get_session
-from logreef.security import create_access_token, verify_email_token, create_email_confirmation_token, send_confirmation_email
+from logreef.security import (
+    create_access_token,
+    verify_email_token,
+    create_email_confirmation_token,
+    send_confirmation_email,
+)
 from logreef.user import get_current_user, get_me
 from logreef.register import register_user
+from logreef.routers import admin
 
 logging.getLogger("passlib").setLevel(logging.ERROR)
-
 logger = logging.getLogger(__name__)
 
 app = FastAPI()
-
-
-origins = ["*"]
-
+app.include_router(
+    admin.router,
+    prefix="/admin"
+)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -50,9 +55,7 @@ async def read_users_me(
 
 
 @app.post("/register", response_model=schemas.User)
-def create_new_user(
-    req: schemas.RegisterUser, db: Session = Depends(get_session)
-):
+def create_new_user(req: schemas.RegisterUser, db: Session = Depends(get_session)):
     ok, data = register_user(
         db,
         username=req.username,
@@ -63,7 +66,7 @@ def create_new_user(
 
     if not ok:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, detail=data["detail"])
-    
+
     # send email confirmation email
     try:
         # get register token
@@ -73,9 +76,12 @@ def create_new_user(
         _, ok = send_confirmation_email(email_token)
 
     except Exception as ex:
-        #TODO delete user from db
+        # TODO delete user from db
         logger.error(ex)
-        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Could not send confirmation email, please try again.")
+        raise HTTPException(
+            status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Could not send confirmation email, please try again.",
+        )
 
     return data["user"]
 
@@ -86,13 +92,13 @@ def confirm_email(token: str, db: Session = Depends(get_session)):
     if not ok:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Confirmation email token is not valid"
+            detail="Confirmation email token is not valid",
         )
     ok = users.set_to_verified(db, email)
     if not ok:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Confirmation failed, try again"
+            detail="Confirmation failed, try again",
         )
     return {"detail": "User email confirmed", "email": email}
 

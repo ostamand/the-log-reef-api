@@ -1,7 +1,6 @@
 from typing import Any
 from datetime import datetime
 from datetime import timedelta, timezone
-\
 import requests
 from passlib.context import CryptContext
 from jose import jwt
@@ -14,12 +13,8 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 def send_confirmation_email(token) -> tuple[str, bool]:
-    payload = {
-        "token": token
-    }
-    headers = {
-        "Content-Type": "application/json"
-    }
+    payload = {"token": token}
+    headers = {"Content-Type": "application/json"}
     response = requests.post(SEND_EMAIL_URL, json=payload, headers=headers)
     return response.text, response.ok
 
@@ -32,7 +27,9 @@ def verify_password(password: str, hash_password: str) -> bool:
     return pwd_context.verify(password, hash_password)
 
 
-def create_access_token(data: dict, expires_delta: timedelta | None = None) -> tuple[str, datetime]:
+def create_access_token(
+    data: dict, expires_delta: timedelta | None = None
+) -> tuple[str, datetime]:
     to_encode = data.copy()
     if expires_delta is not None:
         expire = datetime.now(timezone.utc) + expires_delta
@@ -50,9 +47,15 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None) -> t
 
 
 def create_email_confirmation_token(email: str):
-    expire = datetime.now(timezone.utc) + timedelta(minutes=get_config(ConfigAPI.ACCESS_TOKEN_EXPIRE_MINUTES))
+    expire = datetime.now(timezone.utc) + timedelta(
+        minutes=get_config(ConfigAPI.ACCESS_TOKEN_EXPIRE_MINUTES)
+    )
     to_encode = {"email": email, "exp": expire}
-    return jwt.encode(to_encode, get_config(ConfigAPI.SECRET_KEY), algorithm=get_config(ConfigAPI.ALGORITHM))
+    return jwt.encode(
+        to_encode,
+        get_config(ConfigAPI.SECRET_KEY),
+        algorithm=get_config(ConfigAPI.ALGORITHM),
+    )
 
 
 def get_payload_from_token(token: str) -> dict[str, Any]:
@@ -64,7 +67,7 @@ def get_payload_from_token(token: str) -> dict[str, Any]:
 
 
 def verify_email_token(token: str):
-    try: 
+    try:
         payload = get_payload_from_token(token)
         email = payload.get("email")
         if email is None:

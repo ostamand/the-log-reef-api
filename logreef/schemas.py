@@ -20,7 +20,7 @@ class UserBase(BaseModel):
     username: str
     email: str
     fullname: str | None = None
-    
+
 
 class RegisterUser(UserBase):
     password: str

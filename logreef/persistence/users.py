@@ -15,7 +15,7 @@ def create(
     fullname: str | None = None,
     is_demo: bool = False,
     is_admin: bool = False,
-    verified: bool = False
+    verified: bool = False,
 ) -> models.User:
     now = datetime.now(timezone.utc)
 
