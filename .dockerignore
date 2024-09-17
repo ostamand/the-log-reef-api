@@ -7,3 +7,4 @@ sql
 scripts
 *.egg-info
 notes.md
+.env

@@ -7,3 +7,4 @@ notes.md
 .pytest_cache
 scripts
 *.egg-info
+.env

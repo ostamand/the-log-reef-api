@@ -25,10 +25,11 @@ class TestKits(Enum):
 
 
 class ConfigAPI(Enum):
-    SECRET_KEY = "secret_key"
-    ALGORITHM = "algorithm"
-    DB_URL = "db_url"
-    ACCESS_TOKEN_EXPIRE_MINUTES = "access_token_expire_minutes"
+    SECRET_KEY = "SECRET_KEY"
+    ALGORITHM = "ALGORITHM"
+    DB_URL = "DB_URL"
+    ACCESS_TOKEN_EXPIRE_MINUTES = "ACCESS_TOKEN_EXPIRE_MINUTES"
+    STORAGE_CONNECTION_STRING = "STORAGE_CONNECTION_STRING"
 
 
 default_test_kits = {
@@ -38,13 +39,6 @@ default_test_kits = {
     "magnesium": TestKits.GENERIC_MAGNESIUM_PPM,
     "nitrate": TestKits.GENERIC_NITRATE_PPM,
     "ph": TestKits.GENERIC_PH,
-}
-
-api_configs = {
-    ConfigAPI.SECRET_KEY: "N5fkubrSj2eV7bXZ4JNMoZEvN2WFZIS56TfRLEx6TxA",  # openssl rand -base64 32, production overriden thu env. variables
-    ConfigAPI.ALGORITHM: "HS256",
-    ConfigAPI.DB_URL: "sqlite:///./logreef/logreef.db",
-    ConfigAPI.ACCESS_TOKEN_EXPIRE_MINUTES: 24 * 60,  # expires after 1 day
 }
 
 
@@ -69,9 +63,5 @@ def get_test_kit(test_kit_name: str) -> TestKits:
 
 
 def get_config(config: ConfigAPI):
-    # check if available in env variables
     name = config.value
-    if name in os.environ:
-        return os.environ[name]
-    else:
-        return api_configs[config]
+    return os.environ[name]

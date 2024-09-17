@@ -6,6 +6,7 @@ from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
+from dotenv import load_dotenv
 
 from logreef import schemas, __version__
 from logreef.persistence import users, params, aquariums, testkits, events, messages
@@ -22,14 +23,13 @@ from logreef.user import get_current_user, get_me
 from logreef.register import register_user
 from logreef.routers import admin
 
+load_dotenv()
+
 logging.getLogger("passlib").setLevel(logging.ERROR)
 logger = logging.getLogger(__name__)
 
 app = FastAPI()
-app.include_router(
-    admin.router,
-    prefix="/admin"
-)
+app.include_router(admin.router, prefix="/admin")
 
 app.add_middleware(
     CORSMiddleware,
