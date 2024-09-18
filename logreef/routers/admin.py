@@ -9,6 +9,7 @@ from logreef.user import get_current_user
 from logreef import schemas
 from logreef.persistence.database import get_session, Session
 from logreef.config import ConfigAPI, get_config
+from logreef.security import create_email_confirmation_token
 
 
 BLOB_CONTAINER_NAME = "thereeflog"
@@ -71,3 +72,13 @@ def backup_user(
         "url": blob_client.url,
         "timestamp": datetime.now(timezone.utc),
     }
+
+
+@router.get("/confirmation-token")
+def generate_confirmation_token(
+     current_user: Annotated[schemas.User, Depends(get_current_user)],
+     email: str,
+):
+    check_for_admin(current_user)
+    token = create_email_confirmation_token(email)
+    return {"token": token}
