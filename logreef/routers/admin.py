@@ -76,8 +76,8 @@ def backup_user(
 
 @router.get("/confirmation-token")
 def generate_confirmation_token(
-     current_user: Annotated[schemas.User, Depends(get_current_user)],
-     email: str,
+    current_user: Annotated[schemas.User, Depends(get_current_user)],
+    email: str,
 ):
     check_for_admin(current_user)
     token = create_email_confirmation_token(email)

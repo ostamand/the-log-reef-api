@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 from dotenv import load_dotenv
 
 from logreef import schemas, __version__
-from logreef.persistence import users, params, aquariums, testkits, events, messages
+from logreef.persistence import users, aquariums, testkits, events, messages
 from logreef.user import get_current_user, get_me, check_for_demo, check_for_force_login
 from logreef import summary
 from logreef.persistence.database import get_session
@@ -21,7 +21,7 @@ from logreef.security import (
 )
 from logreef.user import get_current_user, get_me
 from logreef.register import register_user
-from logreef.routers import admin
+from logreef.routers import admin, params
 
 load_dotenv()
 
@@ -30,6 +30,7 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI()
 app.include_router(admin.router, prefix="/admin")
+app.include_router(params.router, prefix="/params")
 
 app.add_middleware(
     CORSMiddleware,
@@ -119,22 +120,6 @@ def save_message(
     )
 
 
-@app.post("/messages")
-def save_message(
-    data: schemas.MessageCreate,
-    db: Session = Depends(get_session),
-):
-    return messages.create(
-        db,
-        data.email,
-        data.message,
-        source=data.source,
-        user_id=data.user_id,
-        full_name=data.full_name,
-        subject=data.subject,
-    )
-
-
 @app.post("/aquariums")
 def create_aquarium(
     current_user: Annotated[schemas.User, Depends(get_current_user)],
@@ -197,84 +182,6 @@ def login(
         is_demo=user.is_demo,
         is_admin=user.is_admin,
     )
-
-
-@app.post("/params")
-def create_param(
-    current_user: Annotated[schemas.User, Depends(get_current_user)],
-    data: schemas.ParamCreate,
-    db: Session = Depends(get_session),
-    commit: bool = True,
-):
-    check_for_force_login(current_user)
-    check_for_demo(current_user)
-    return params.create(
-        db,
-        current_user.id,
-        data.aquarium,
-        data.param_type_name,
-        data.value,
-        test_kit=data.test_kit_name,
-        timestamp=data.timestamp,
-        commit=commit,
-    )
-
-
-@app.get("/params/")
-def get_params(
-    aquarium: str,
-    current_user: Annotated[schemas.User, Depends(get_current_user)],
-    type: str | None = None,
-    days: int | None = None,
-    limit: int | None = None,
-    offset: int = 0,
-    db: Session = Depends(get_session),
-):
-    check_for_force_login(current_user)
-    return params.get_by_type(db, current_user.id, aquarium, type, days, limit, offset)
-
-
-@app.delete("/params/{param_id}")
-def delete_param_by_id(
-    param_id,
-    current_user: Annotated[schemas.User, Depends(get_current_user)],
-    db: Session = Depends(get_session),
-):
-    check_for_force_login(current_user)
-    check_for_demo(current_user)
-    try:
-        deleted = params.delete_by_id(db, current_user.id, param_id)
-    except:
-        raise HTTPException(
-            status.HTTP_400_BAD_REQUEST, detail="Error while trying to delete parameter"
-        )
-    if not deleted:
-        raise HTTPException(
-            status.HTTP_400_BAD_REQUEST,
-            detail="Parameter does not exists, can't delete",
-        )
-
-
-@app.get("/params/{param_id}")
-def get_param_by_id(
-    param_id: int,
-    current_user: Annotated[schemas.User, Depends(get_current_user)],
-    db: Session = Depends(get_session),
-):
-    check_for_force_login(current_user)
-    return params.get_param_by_id(db, current_user.id, param_id)
-
-
-@app.put("/params/{param_id}")
-def update_param_by_id(
-    param_id: int,
-    current_user: Annotated[schemas.User, Depends(get_current_user)],
-    data: schemas.ParamUpdate,
-    db: Session = Depends(get_session),
-):
-    check_for_force_login(current_user)
-    check_for_demo(current_user)
-    return params.update_by_id(db, current_user.id, param_id, **data.model_dump())
 
 
 @app.get("/summary/")
