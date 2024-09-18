@@ -1,4 +1,4 @@
-psycopg-binary
+psycopg2-binary
 fastapi
 uvicorn
 SQLAlchemy
@@ -12,3 +12,4 @@ python-dotenv
 pandas
 requests
 azure-storage-blob 
+psycopg2
