@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends,HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 
 from logreef import schemas
 from logreef.persistence.database import get_session, Session
@@ -43,6 +43,18 @@ def get_params(
 ):
     check_for_force_login(current_user)
     return params.get_by_type(db, current_user.id, aquarium, type, days, limit, offset)
+
+
+@router.get("/count")
+def get_count(
+    aquarium: str,
+    current_user: Annotated[schemas.User, Depends(get_current_user)],
+    type: str | None = None,
+    days: int | None = None,
+    db: Session = Depends(get_session),
+):
+    check_for_force_login(current_user)
+    return params.get_count_by_type(db, current_user.id, aquarium, type, days)
 
 
 @router.delete("/{param_id}")

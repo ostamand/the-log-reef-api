@@ -190,6 +190,40 @@ def get_by_type(
     return out
 
 
+def get_count_by_type(
+    db: Session,
+    user_id: int,
+    aquarium: str,
+    param_type: str | ParamTypes,
+    days: int | None = None,
+):
+    query = """
+    SELECT COUNT(p.id)
+    FROM param_values AS p
+    LEFT JOIN test_kits AS t ON p.test_kit_name = t.name
+    LEFT JOIN param_types ON p.param_type_name = param_types.name
+    LEFT JOIN aquariums ON p.aquarium_id =aquariums.id
+    WHERE p.user_id = :user_id
+        AND p.param_type_name = :param_type_name
+        AND aquariums.name = :aquarium_name
+    """
+    if type(param_type) is ParamTypes:
+        param_type = param_type.value
+
+    data = {
+        "param_type_name": param_type,
+        "user_id": user_id,
+        "aquarium_name": aquarium,
+    }
+    if days is not None:
+        query += " AND p.timestamp > current_date - interval ':days' day"
+        data["days"] = days
+    sql = text(query)
+    result = db.execute(sql, data)
+    data = [row for row in result]
+    return {"count": data[0][0]}
+
+
 def get_param_by_id(db: Session, user_id: int, param_id: int) -> schemas.ParamInfo:
     cols = schemas.ParamInfo.get_fields()
     sql = text(
