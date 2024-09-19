@@ -1,5 +1,3 @@
-from datetime import datetime
-from datetime import UTC
 from sqlalchemy.orm import Session
 
 from logreef.persistence import users, aquariums
