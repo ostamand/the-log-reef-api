@@ -15,13 +15,13 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-def import_to_db(username, email, password, aquarium_name, filepath):
+def import_to_db(username, email, password, aquarium_name, filepath, is_demo: bool = False):
     conn = psycopg2.connect(os.getenv("DB_URL"))
 
     # create new user
     query = f"""
-        INSERT INTO users (username, email, hash_password)
-            VALUES ('{username}', '{email}', '{hash_password(password)}')
+        INSERT INTO users (username, email, hash_password, verified, is_demo)
+            VALUES ('{username}', '{email}', '{hash_password(password)}', {True}, {is_demo})
             RETURNING id
     """
     with conn.cursor() as cur:
@@ -82,7 +82,9 @@ if __name__ == "__main__":
     parser.add_argument("--email", default="test@thereeflog.com", type=str)
     parser.add_argument("--password", default="testtest", type=str)
     parser.add_argument("--file", default="test.csv", type=str)
+    parser.add_argument("--demo", action="store_true")
+
 
     args = parser.parse_args()
 
-    import_to_db(args.username, args.email, args.password, "Default", args.file)
+    import_to_db(args.username, args.email, args.password, "Default", args.file, is_demo=args.demo)

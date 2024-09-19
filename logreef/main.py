@@ -76,6 +76,9 @@ def create_new_user(req: schemas.RegisterUser, db: Session = Depends(get_session
         # send confirmation email with token
         _, ok = send_confirmation_email(email_token)
 
+        if not ok:
+            raise Exception()
+
     except Exception as ex:
         # TODO delete user from db
         logger.error(ex)
