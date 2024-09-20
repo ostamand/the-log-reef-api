@@ -26,8 +26,9 @@ def get_session():
         session.rollback()
         raise e
     finally:
+        session.close()
+        #session.connection().close() needed?
         Session.remove()
-        # session.close()
 
 
 def add_to_db(session: Session, model):
