@@ -4,40 +4,31 @@ from sqlalchemy.orm import scoped_session, sessionmaker, Session
 
 from logreef.config import get_config, ConfigAPI
 
-
+engine = create_engine(get_config(ConfigAPI.DB_URL))
+SessionLocal= scoped_session(
+    sessionmaker(autocommit=False, autoflush=False, bind=engine)
+)
 Base = declarative_base()
 
 
-def get_scoped_session(db_url=None):
-    db_url = db_url if db_url is not None else get_config(ConfigAPI.DB_URL)
-    engine = create_engine(db_url)
-    Session = scoped_session(
-        sessionmaker(autocommit=False, autoflush=False, bind=engine)
-    )
-    return Session
-
-
 def get_session():
-    Session = get_scoped_session()
+    db = SessionLocal()
     try:
-        session = Session()
-        yield session
+        yield db
     except Exception as e:
-        session.rollback()
+        db.rollback()
         raise e
     finally:
-        session.close()
-        #session.connection().close() needed?
-        Session.remove()
+        db.close()
 
 
-def add_to_db(session: Session, model):
-    session.add(model)
-    session.commit()
-    session.refresh(model)
+def add_to_db(db: Session, model):
+    db.add(model)
+    db.commit()
+    db.refresh(model)
     return model
 
 
-def delete_from_db(session: Session, model):
-    session.delete(model)
-    session.commit()
+def delete_from_db(db: Session, model):
+    db.delete(model)
+    db.commit()
