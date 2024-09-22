@@ -134,7 +134,7 @@ def get_by_type(
     db: Session,
     user_id: int,
     aquarium: str,
-    param_type: str | ParamTypes,
+    param_type: str | ParamTypes = None,
     days: int | None = None,
     limit: int | None = None,
     offset: int | None = None,
@@ -158,11 +158,12 @@ def get_by_type(
     LEFT JOIN param_types ON p.param_type_name = param_types.name
     LEFT JOIN aquariums ON p.aquarium_id =aquariums.id
     WHERE p.user_id = :user_id
-        AND p.param_type_name = :param_type_name
         AND aquariums.name = :aquarium_name
     """
-    if type(param_type) is ParamTypes:
-        param_type = param_type.value
+    if param_type is not None:
+        if type(param_type) is ParamTypes:
+            param_type = param_type.value
+        query += " AND p.param_type_name = :param_type_name"
 
     data = {
         "param_type_name": param_type,
@@ -194,7 +195,7 @@ def get_count_by_type(
     db: Session,
     user_id: int,
     aquarium: str,
-    param_type: str | ParamTypes,
+    param_type: str | ParamTypes = None,
     days: int | None = None,
 ):
     query = """
@@ -204,11 +205,12 @@ def get_count_by_type(
     LEFT JOIN param_types ON p.param_type_name = param_types.name
     LEFT JOIN aquariums ON p.aquarium_id =aquariums.id
     WHERE p.user_id = :user_id
-        AND p.param_type_name = :param_type_name
         AND aquariums.name = :aquarium_name
     """
-    if type(param_type) is ParamTypes:
-        param_type = param_type.value
+    if param_type is not None:
+        if type(param_type) is ParamTypes:
+            param_type = param_type.value
+        query += " AND p.param_type_name = :param_type_name"
 
     data = {
         "param_type_name": param_type,

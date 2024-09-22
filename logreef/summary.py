@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime, timezone
 
 from logreef.persistence import params
 from logreef.persistence.database import Session
@@ -44,7 +44,7 @@ def get_by_type(
         summary["ids"].append(int(param.id))
         summary["timestamps"].append(param.timestamp)
 
-    now = datetime.datetime.now(datetime.UTC).replace(tzinfo=None)
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
     for ts in summary["timestamps"]:
         summary["time_since_secs"].append((now - ts).total_seconds())
 
