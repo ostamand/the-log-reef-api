@@ -1,13 +1,12 @@
 import pytest
 
-from logreef.persistence.database import get_scoped_session
+from logreef.persistence.database import SessionLocal
 
 
 @pytest.fixture()
 def test_db():
-    Session = get_scoped_session()
-    session = Session()
+    db = SessionLocal()
     try:
-        yield session
+        yield db
     finally:
-        Session.remove()
+        db.close()
