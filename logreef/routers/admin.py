@@ -41,7 +41,7 @@ def backup_user(
         WHERE users.username = '{username}'
     """
 
-    filename = f"{username}-{datetime.now(timezone.utc).strftime("%Y%m%d")}.csv"
+    filename = f"{username}-{datetime.now(timezone.utc).strftime('%Y%m%d')}.csv"
 
     try:
         conn = db.connection().connection
