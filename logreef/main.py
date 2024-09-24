@@ -9,8 +9,8 @@ from sqlalchemy.orm import Session
 from dotenv import load_dotenv
 
 from logreef import schemas, __version__
-from logreef.persistence import users, aquariums, testkits, events, messages
-from logreef.user import get_current_user, get_me, check_for_demo, check_for_force_login
+from logreef.persistence import users, testkits, events, messages
+from logreef.user import get_current_user, get_me, check_for_force_login
 from logreef import summary
 from logreef.persistence.database import get_session
 from logreef.security import (
@@ -21,7 +21,7 @@ from logreef.security import (
 )
 from logreef.user import get_current_user, get_me
 from logreef.register import register_user
-from logreef.routers import admin, params
+from logreef.routers import admin, params, aquariums
 
 load_dotenv()
 
@@ -31,6 +31,8 @@ logger = logging.getLogger(__name__)
 app = FastAPI()
 app.include_router(admin.router, prefix="/admin")
 app.include_router(params.router, prefix="/params")
+app.include_router(aquariums.router, prefix="/aquariums")
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -121,32 +123,6 @@ def save_message(
         full_name=data.full_name,
         subject=data.subject,
     )
-
-
-@app.post("/aquariums")
-def create_aquarium(
-    current_user: Annotated[schemas.User, Depends(get_current_user)],
-    data: schemas.AquariumCreate,
-    db: Session = Depends(get_session),
-):
-    check_for_force_login(current_user)
-    check_for_demo(current_user)
-    aquarium_db = aquariums.get_by_name(db, current_user.id, data.name)
-    if aquarium_db is not None:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Aquarium '{data.name}' already exists",
-        )
-    return aquariums.create(db, current_user.id, data.name)
-
-
-@app.get("/aquariums")
-def get_aquariums(
-    current_user: Annotated[schemas.User, Depends(get_current_user)],
-    db: Session = Depends(get_session),
-):
-    check_for_force_login(current_user)
-    return aquariums.get_all(db, current_user.id)
 
 
 @app.post("/login")

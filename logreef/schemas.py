@@ -16,6 +16,11 @@ class AquariumCreate(BaseModel):
     description: str | None
 
 
+class AquariumUpdate(BaseModel):
+    started_on: datetime | None = None
+    description: str | None = None
+
+
 class UserBase(BaseModel):
     username: str
     email: str

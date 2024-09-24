@@ -47,20 +47,20 @@ def get_all(db: Session, user_id: int) -> list[models.Aquarium]:
     return db.query(models.Aquarium).filter(models.Aquarium.user_id == user_id).all()
 
 
-def update_by_id(
+def update_by_name(
     db: Session,
+    aquarium_name: str,
     user_id: int,
-    aquarium_id: int,
     description: str | None,
-    name: str | None,
+    started_on: datetime | None,
 ):
     updates = {models.Aquarium.updated_on: datetime.now(timezone.utc)}
     if description is not None:
         updates[models.Aquarium.description] = description
-    if name is not None:
-        updates[models.Aquarium.name] = name
+    if started_on is not None:
+        updates[models.Aquarium.started_on] = started_on
     db.query(models.Aquarium).filter(models.Aquarium.user_id == user_id).filter(
-        models.Aquarium.id == aquarium_id
+        models.Aquarium.name == aquarium_name
     ).update(updates)
     db.commit()
     return True

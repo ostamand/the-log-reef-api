@@ -5,7 +5,7 @@ from sqlalchemy.orm import scoped_session, sessionmaker, Session
 from logreef.config import get_config, ConfigAPI
 
 engine = create_engine(get_config(ConfigAPI.DB_URL))
-SessionLocal= scoped_session(
+SessionLocal = scoped_session(
     sessionmaker(autocommit=False, autoflush=False, bind=engine)
 )
 Base = declarative_base()
