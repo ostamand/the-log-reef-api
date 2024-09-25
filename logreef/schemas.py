@@ -12,8 +12,8 @@ class Aquarium(BaseModel):
 
 class AquariumCreate(BaseModel):
     name: str
-    started_on: datetime | None
-    description: str | None
+    started_on: datetime | None = None
+    description: str | None = None
 
 
 class AquariumUpdate(BaseModel):

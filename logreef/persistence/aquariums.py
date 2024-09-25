@@ -47,9 +47,9 @@ def get_all(db: Session, user_id: int) -> list[models.Aquarium]:
     return db.query(models.Aquarium).filter(models.Aquarium.user_id == user_id).all()
 
 
-def update_by_name(
+def update_by_id(
     db: Session,
-    aquarium_name: str,
+    aquarium_id: int,
     user_id: int,
     description: str | None,
     started_on: datetime | None,
@@ -60,7 +60,18 @@ def update_by_name(
     if started_on is not None:
         updates[models.Aquarium.started_on] = started_on
     db.query(models.Aquarium).filter(models.Aquarium.user_id == user_id).filter(
-        models.Aquarium.name == aquarium_name
+        models.Aquarium.id == aquarium_id
     ).update(updates)
     db.commit()
     return True
+
+
+def delete_by_id(db: Session, user_id: int, aquarium_id: int):
+    rows = (
+        db.query(models.Aquarium)
+        .filter(models.Aquarium.user_id == user_id)
+        .filter(models.Aquarium.id == aquarium_id)
+        .delete()
+    )
+    db.commit()
+    return rows
