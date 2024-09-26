@@ -51,8 +51,8 @@ def update_by_id(
     db: Session,
     aquarium_id: int,
     user_id: int,
-    description: str | None,
-    started_on: datetime | None,
+    description: str | None = None,
+    started_on: datetime | None = None,
 ):
     updates = {models.Aquarium.updated_on: datetime.now(timezone.utc)}
     if description is not None:
