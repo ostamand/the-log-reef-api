@@ -28,7 +28,7 @@ def create_aquarium(
     )
 
 
-@router.get("")
+@router.get("/")
 def get_aquariums(
     current_user: Annotated[schemas.User, Depends(get_current_user)],
     db: Session = Depends(get_session),

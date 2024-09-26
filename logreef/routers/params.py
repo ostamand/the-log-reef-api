@@ -31,7 +31,7 @@ def create_param(
     )
 
 
-@router.get("")
+@router.get("/")
 def get_params(
     aquarium: str,
     current_user: Annotated[schemas.User, Depends(get_current_user)],
