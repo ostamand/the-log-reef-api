@@ -13,6 +13,8 @@ def create(
     name: str,
     started_on: datetime | None = None,
     description: str | None = None,
+    capacity_value: float | None = None,
+    capacity_units: str | None = None,
 ) -> models.Aquarium:
     now = datetime.now(timezone.utc)
     db_aquarium = models.Aquarium(
@@ -22,6 +24,8 @@ def create(
         created_on=now,
         updated_on=now,
         description=description,
+        capacity_value=capacity_value,
+        capacity_units=capacity_units
     )
     add_to_db(db, db_aquarium)
     return db_aquarium
@@ -53,12 +57,18 @@ def update_by_id(
     user_id: int,
     description: str | None = None,
     started_on: datetime | None = None,
+    capacity_value: float | None = None,
+    capacity_units: str | None = None,
 ):
     updates = {models.Aquarium.updated_on: datetime.now(timezone.utc)}
     if description is not None:
         updates[models.Aquarium.description] = description
     if started_on is not None:
         updates[models.Aquarium.started_on] = started_on
+    if capacity_value is not None:
+        updates[models.Aquarium.capacity_value] = capacity_value
+    if capacity_units is not None:
+        updates[models.Aquarium.capacity_units] = capacity_units
     db.query(models.Aquarium).filter(models.Aquarium.user_id == user_id).filter(
         models.Aquarium.id == aquarium_id
     ).update(updates)

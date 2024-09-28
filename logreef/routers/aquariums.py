@@ -1,9 +1,9 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status, Response
+from fastapi import APIRouter, Depends, HTTPException, status
 
 from logreef import schemas
-from logreef.user import get_current_user, check_for_force_login, check_for_demo
+from logreef.user import get_current_user, check_for_demo
 from logreef.persistence.database import Session, get_session
 from logreef.persistence import aquariums
 
@@ -24,7 +24,7 @@ def create_aquarium(
             detail=f"Aquarium '{data.name}' already exists",
         )
     return aquariums.create(
-        db, current_user.id, data.name, description=data.description, started_on=data.started_on
+        db, current_user.id, **data.model_dump()
     )
 
 

@@ -51,6 +51,8 @@ class Aquarium(Base):
     started_on = mapped_column(DateTime)
     created_on = mapped_column(DateTime)
     updated_on = mapped_column(DateTime)
+    capacity_value = mapped_column(Numeric)
+    capacity_units = mapped_column(String)
     user: Mapped[User] = relationship("User", foreign_keys="Aquarium.user_id")
 
 

@@ -14,11 +14,15 @@ class AquariumCreate(BaseModel):
     name: str
     started_on: datetime | None = None
     description: str | None = None
+    capacity_value: float | None = None
+    capacity_units: str | None = None
 
 
 class AquariumUpdate(BaseModel):
     started_on: datetime | None = None
     description: str | None = None
+    capacity_value: float | None = None
+    capacity_units: str | None = None
 
 
 class UserBase(BaseModel):
