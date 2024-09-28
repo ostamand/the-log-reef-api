@@ -24,7 +24,7 @@ def create_aquarium(
             detail=f"Aquarium '{data.name}' already exists",
         )
     return aquariums.create(
-        db, current_user.id, data.name, description=data.description
+        db, current_user.id, data.name, description=data.description, started_on=data.started_on
     )
 
 
