@@ -106,20 +106,22 @@ def create(
 
 
 def get_stats_by_type_last_n_days(
-    db: Session, user_id: int, param_type: str, n_days: int
+    db: Session, user_id: int, aquarium_name: str, param_type: str, n_days: int
 ):
     sql = text(
         """
         SELECT COUNT(1) as count, AVG(value) as avg, STDDEV(value) as std
         FROM param_values
-        WHERE user_id = :user_id
-        AND param_type_name = :param_type
-        AND param_values.timestamp > NOW()::DATE - :n_days;    
+        LEFT JOIN aquariums ON param_values.aquarium_id =aquariums.id
+        WHERE param_values.user_id = :user_id
+            AND param_type_name = :param_type
+            AND param_values.timestamp > NOW()::DATE - :n_days
+            AND aquariums.name = :aquarium_name  
         """
     )
     cols = ["count", "avg", "std"]
     result = db.execute(
-        sql, {"param_type": param_type, "user_id": user_id, "n_days": n_days}
+        sql, {"param_type": param_type, "user_id": user_id, "aquarium_name": aquarium_name, "n_days": n_days}
     )
     data = [row for row in result]
     if len(data) > 0:

@@ -20,7 +20,7 @@ def test_can_get_stats_for_n_days(test_db):
     user, aquarium = save_random_user_and_aquarium(test_db)
 
     result = params.get_stats_by_type_last_n_days(
-        test_db, user.id, ParamTypes.ALKALINITY.value, 0
+        test_db, user.id, aquarium.name, ParamTypes.ALKALINITY.value, 0
     )
 
     assert result["count"] == 0
@@ -39,21 +39,21 @@ def test_can_get_stats_for_n_days(test_db):
         )
 
     result = params.get_stats_by_type_last_n_days(
-        test_db, user.id, ParamTypes.ALKALINITY.value, 1
+        test_db, user.id, aquarium.name, ParamTypes.ALKALINITY.value, 1
     )
 
     assert result["count"] == 2
     assert result["avg"] == (0 + 1) / 2
 
     result = params.get_stats_by_type_last_n_days(
-        test_db, user.id, ParamTypes.ALKALINITY.value, 2
+        test_db, user.id, aquarium.name, ParamTypes.ALKALINITY.value, 2
     )
 
     assert result["count"] == 3
     assert result["avg"] == (0 + 1 + 2) / 3
 
     result = params.get_stats_by_type_last_n_days(
-        test_db, user.id, ParamTypes.ALKALINITY.value, 7
+        test_db, user.id, aquarium.name, ParamTypes.ALKALINITY.value, 7
     )
 
     assert result["count"] == 7
