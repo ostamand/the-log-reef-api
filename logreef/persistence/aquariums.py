@@ -25,7 +25,7 @@ def create(
         updated_on=now,
         description=description,
         capacity_value=capacity_value,
-        capacity_units=capacity_units
+        capacity_units=capacity_units,
     )
     add_to_db(db, db_aquarium)
     return db_aquarium

@@ -27,6 +27,36 @@ def check_for_admin(user: schemas.User):
         )
 
 
+@router.get("/update-demo-user")
+def daily_demo_user_update(
+    current_user: Annotated[schemas.User, Depends(get_current_user)],
+    db: Session = Depends(get_session),
+    username: str = "demo",
+):
+    check_for_admin(current_user)
+    query = f"""UPDATE param_values
+        SET timestamp = timestamp + INTERVAL '1 day'
+        FROM users
+        WHERE param_values.user_id = users.id
+        AND users.username = '{username}';
+    """
+    try:
+        conn = db.connection().connection
+        with conn.cursor() as cur:
+            cur.execute(query)
+            conn.commit()
+    except Exception as ex:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Demo user update failed",
+        )
+    finally:
+        conn.close()
+    return {
+        "detail": "Updated user demo",
+    }
+
+
 @router.get("/backup-user")
 def backup_user(
     current_user: Annotated[schemas.User, Depends(get_current_user)],
@@ -48,7 +78,6 @@ def backup_user(
         with conn.cursor() as cur:
             with open(filename, "w") as f:
                 cur.copy_expert(f"COPY ({query}) TO STDOUT WITH CSV HEADER", f)
-        conn.close()
 
         # save to storage account
         blob_service_client = BlobServiceClient.from_connection_string(
@@ -65,6 +94,7 @@ def backup_user(
             detail="Data backup failed",
         )
     finally:
+        conn.close()
         if os.path.exists(filename):
             os.remove(filename)
     return {

@@ -23,9 +23,7 @@ def create_aquarium(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Aquarium '{data.name}' already exists",
         )
-    return aquariums.create(
-        db, current_user.id, **data.model_dump()
-    )
+    return aquariums.create(db, current_user.id, **data.model_dump())
 
 
 @router.get("")

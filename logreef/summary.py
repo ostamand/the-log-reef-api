@@ -49,7 +49,9 @@ def get_by_type(
         summary["time_since_secs"].append((now - ts).total_seconds())
 
     # get last week count
-    results = params.get_stats_by_type_last_n_days(db, user_id, aquarium_name, param_type, 7)
+    results = params.get_stats_by_type_last_n_days(
+        db, user_id, aquarium_name, param_type, 7
+    )
 
     summary["count_last_week"] = results["count"]
     summary["avg_last_week"] = results["avg"]

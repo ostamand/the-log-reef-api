@@ -121,7 +121,13 @@ def get_stats_by_type_last_n_days(
     )
     cols = ["count", "avg", "std"]
     result = db.execute(
-        sql, {"param_type": param_type, "user_id": user_id, "aquarium_name": aquarium_name, "n_days": n_days}
+        sql,
+        {
+            "param_type": param_type,
+            "user_id": user_id,
+            "aquarium_name": aquarium_name,
+            "n_days": n_days,
+        },
     )
     data = [row for row in result]
     if len(data) > 0:
