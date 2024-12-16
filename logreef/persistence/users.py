@@ -83,6 +83,13 @@ def update_by_id(
     return True
 
 
+def update_password(db: Session, user_id: int, new_password: str):
+    hash_new_password  = hash_password(new_password)
+    db.query(models.User).filter(models.User.id == user_id).update({models.User.hash_password: hash_new_password})
+    db.commit()
+    return True
+
+
 def set_to_verified(db: Session, email: str):
     sql = text("UPDATE users SET verified = TRUE WHERE email = :email")
     _ = db.execute(sql, {"email": email})

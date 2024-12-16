@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, status
 from azure.storage.blob import BlobServiceClient
 
+from logreef.persistence import users
 from logreef.user import get_current_user
 from logreef import schemas
 from logreef.persistence.database import get_session, Session
@@ -25,7 +26,28 @@ def check_for_admin(user: schemas.User):
             detail="Need admin credentials",
             headers={"WWW-Authenticate": "Bearer"},
         )
+    
 
+@router.post("/update-password")
+def update_password(req: schemas.UpdatePassword, current_user: Annotated[schemas.User, Depends(get_current_user)], db: Session = Depends(get_session)):
+    # check that password match 
+    user = users.authenticate(db, current_user.username, req.old_password)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username, old password or account not verified",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    ok = users.update_password(db, user.id, req.new_password)
+    
+    if not ok:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Password change failed, try again",
+        )
+    return {"detail": "Password changed", "username": user.username, "email": user.email}
+    
 
 @router.get("/update-demo-user")
 def daily_demo_user_update(
