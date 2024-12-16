@@ -61,16 +61,16 @@ async def read_users_me(
 def check_for_new_user(username: str, email: str, db: Session = Depends(get_session)):
     user = users.get_by_email(db, email)
     if user is not None:
-        return HTTPException(
+        raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Email already exists."
         )
     user = users.get_by_username(db, username)
     if user is not None:
-        return HTTPException(
+        raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Username already exists, select a different one.",
         )
-    return Response(status_code=status.HTTP_200_OK)
+    return {"detail": "Email and username are valid"}
 
 
 @app.post("/register", response_model=schemas.User)
