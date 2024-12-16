@@ -2,7 +2,7 @@ from typing import Annotated
 import logging
 from datetime import datetime, timezone
 
-from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi import FastAPI, Depends, HTTPException, status, Response
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
@@ -55,6 +55,22 @@ async def read_users_me(
 ):
     check_for_force_login(current_user)
     return get_me(db, current_user)
+
+
+@app.get("/register")
+def check_for_new_user(username: str, email: str, db: Session = Depends(get_session)):
+    user = users.get_by_email(db, email)
+    if user is not None:
+        return HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Email already exists."
+        )
+    user = users.get_by_username(db, username)
+    if user is not None:
+        return HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Username already exists, select a different one.",
+        )
+    return Response(status_code=status.HTTP_200_OK)
 
 
 @app.post("/register", response_model=schemas.User)
@@ -155,6 +171,8 @@ def login(
     access_token, expires_date = create_access_token(data={"username": user.username})
 
     return schemas.Token(
+        username=user.username,
+        email=user.email,
         access_token=access_token,
         token_type="bearer",
         expires_on=expires_date,

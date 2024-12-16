@@ -144,6 +144,8 @@ class EventWaterChange(BaseModel):
 
 
 class Token(BaseModel):
+    username: str
+    email: str
     access_token: str
     token_type: str
     is_demo: bool
