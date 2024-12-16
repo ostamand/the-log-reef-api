@@ -29,4 +29,4 @@ db:
 	docker compose up --build db
 
 dev:
-	db_url=postgresql://root:secret@127.0.0.1:5432/logreef fastapi dev logreef/main.py
+	DB_URL='postgresql://root:secret@127.0.0.1:5432/logreef' fastapi dev logreef/main.py
