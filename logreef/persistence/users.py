@@ -6,30 +6,32 @@ from sqlalchemy import text
 from logreef.persistence import models
 from logreef.security import hash_password, verify_password
 
-
 def create(
     db: Session,
     username: str,
-    password: str,
+    password: str | None = None,
     email: str | None = None,
     fullname: str | None = None,
     is_demo: bool = False,
     is_admin: bool = False,
     verified: bool = False,
+    google: bool = False,
+    avatar_url: str | None = None
 ) -> models.User:
     now = datetime.now(timezone.utc)
 
     db_user = models.User(
         username=username,
-        hash_password=hash_password(password),
+        hash_password=hash_password(password) if password is not None else None,
         email=email,
         fullname=fullname,
         is_admin=is_admin,
         is_demo=is_demo,
-        force_login=False,
         created_on=now,
-        last_login_on=now,
+        last_login_on=None if google else now, # not used for oauth login
         verified=verified,
+        google=google,
+        avatar_url=avatar_url
     )
 
     db.add(db_user)
@@ -71,13 +73,10 @@ def update_by_id(
     db: Session,
     user_id: int,
     last_login_on: datetime | None = None,
-    force_login: bool | None = None,
 ) -> bool:
     updates = {}
     if last_login_on is not None:
         updates[models.User.last_login_on] = datetime.now(timezone.utc)
-    if force_login is not None:
-        updates[models.User.force_login] = force_login
     db.query(models.User).filter(models.User.id == user_id).update(updates)
     db.commit()
     return True

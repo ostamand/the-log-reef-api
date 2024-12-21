@@ -11,21 +11,17 @@ SEND_EMAIL_URL = "https://thereeflog-function.azurewebsites.net/api/confirmation
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-
 def send_confirmation_email(token) -> tuple[str, bool]:
     payload = {"token": token}
     headers = {"Content-Type": "application/json"}
     response = requests.post(SEND_EMAIL_URL, json=payload, headers=headers)
     return response.text, response.ok
 
-
 def hash_password(password: str) -> str:
     return pwd_context.hash(password)
 
-
 def verify_password(password: str, hash_password: str) -> bool:
     return pwd_context.verify(password, hash_password)
-
 
 def create_access_token(
     data: dict, expires_delta: timedelta | None = None
@@ -45,7 +41,6 @@ def create_access_token(
     )
     return encoded_jwt, expire
 
-
 def create_email_confirmation_token(email: str):
     expire = datetime.now(timezone.utc) + timedelta(
         minutes=float(get_config(ConfigAPI.ACCESS_TOKEN_EXPIRE_MINUTES))
@@ -57,7 +52,6 @@ def create_email_confirmation_token(email: str):
         algorithm=get_config(ConfigAPI.ALGORITHM),
     )
 
-
 def get_payload_from_token(token: str) -> dict[str, Any]:
     return jwt.decode(
         token,
@@ -65,6 +59,13 @@ def get_payload_from_token(token: str) -> dict[str, Any]:
         algorithms=[get_config(ConfigAPI.ALGORITHM)],
     )
 
+def get_payload_from_supabase_token(token: str):
+    return jwt.decode(
+        token,
+        get_config(ConfigAPI.SUPABASE_AUTH_SECRET),
+        algorithms=["HS256"],
+        options={"verify_aud": False, "verify_exp": True},
+    )
 
 def verify_email_token(token: str):
     try:

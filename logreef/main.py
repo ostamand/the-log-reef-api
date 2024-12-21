@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 
 from logreef import schemas, __version__
 from logreef.persistence import users, testkits, events, messages
-from logreef.user import get_current_user, get_me, check_for_force_login
+from logreef.user import get_current_user, get_me
 from logreef import summary
 from logreef.persistence.database import get_session
 from logreef.security import (
@@ -18,10 +18,12 @@ from logreef.security import (
     verify_email_token,
     create_email_confirmation_token,
     send_confirmation_email,
+    get_payload_from_supabase_token
 )
 from logreef.user import get_current_user, get_me
 from logreef.register import register_user
 from logreef.routers import admin, params, aquariums
+from logreef.config import ConfigAPI, get_config
 
 load_dotenv()
 
@@ -45,7 +47,7 @@ app.add_middleware(
 
 @app.get("/")
 def read_root():
-    return {"api": "logreef", "version": __version__}
+    return {"api": "logreef", "version": __version__, "db": get_config(ConfigAPI.DB_URL)}
 
 
 @app.get("/users/me", response_model=schemas.Me)
@@ -53,7 +55,6 @@ async def read_users_me(
     current_user: Annotated[schemas.User, Depends(get_current_user)],
     db: Session = Depends(get_session),
 ):
-    check_for_force_login(current_user)
     return get_me(db, current_user)
 
 
@@ -73,8 +74,31 @@ def check_for_new_user(username: str, email: str, db: Session = Depends(get_sess
     return {"detail": "Email and username are valid"}
 
 
-@app.post("/register", response_model=schemas.User)
+@app.post("/register") # , response_model=schemas.User
 def create_new_user(req: schemas.RegisterUser, db: Session = Depends(get_session)):
+    # check if should register thru oauth 2 access token
+    if req.accessToken is not None:
+        try:
+            user_data = get_payload_from_supabase_token(req.accessToken)
+        except:
+            raise HTTPException(status.HTTP_401_UNAUTHORIZED, detail="Access token is not valid")
+        
+        # register user
+        ok, data = register_user(
+            db,
+            username=user_data["user_metadata"]["name"],
+            password=None,
+            email=user_data["user_metadata"]["email"],
+            fullname=user_data["user_metadata"]["full_name"],
+            avatar_url=user_data["user_metadata"]["avatar_url"],
+            google=True
+        )
+
+        if not ok:
+            raise HTTPException(status.HTTP_400_BAD_REQUEST, detail=data["detail"])
+
+        return user_data
+
     ok, data = register_user(
         db,
         username=req.username,
@@ -157,10 +181,6 @@ def login(
 
     user_updates = {}
 
-    # update force login if needed
-    if user.force_login:
-        user_updates["force_login"] = False
-
     # update last login time
     if not user.is_demo:
         user_updates["last_login_on"] = datetime.now(timezone.utc)
@@ -188,7 +208,6 @@ def get_summary(
     db: Session = Depends(get_session),
     type: str | None = None,
 ):
-    check_for_force_login(current_user)
     if type is not None:
         return {type: summary.get_by_type(db, current_user.id, aquarium, type)}
     return summary.get_for_all(db, current_user.id, aquarium)
@@ -217,7 +236,6 @@ def create_water_change(
     data: schemas.WaterChangeCreate,
     db: Session = Depends(get_session),
 ):
-    check_for_force_login(current_user)
     event_db = events.create_water_change(
         db,
         current_user.id,
@@ -236,6 +254,5 @@ def get_water_changes(
     db: Session = Depends(get_session),
     days: int | None = None,
 ):
-    check_for_force_login(current_user)
     water_changes_db = events.get_water_changes(db, current_user.id, days=days)
     return list(map(lambda x: schemas.EventWaterChange.convert(x), water_changes_db))

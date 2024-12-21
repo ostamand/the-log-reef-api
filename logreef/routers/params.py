@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from logreef import schemas
 from logreef.persistence.database import get_session, Session
-from logreef.user import get_current_user, check_for_demo, check_for_force_login
+from logreef.user import get_current_user, check_for_demo
 from logreef.persistence import params
 
 router = APIRouter()
@@ -17,7 +17,6 @@ def create_param(
     db: Session = Depends(get_session),
     commit: bool = True,
 ):
-    check_for_force_login(current_user)
     check_for_demo(current_user)
     return params.create(
         db,
@@ -41,7 +40,6 @@ def get_params(
     offset: int = 0,
     db: Session = Depends(get_session),
 ):
-    check_for_force_login(current_user)
     return params.get_by_type(db, current_user.id, aquarium, type, days, limit, offset)
 
 
@@ -53,7 +51,6 @@ def get_count(
     days: int | None = None,
     db: Session = Depends(get_session),
 ):
-    check_for_force_login(current_user)
     return params.get_count_by_type(db, current_user.id, aquarium, type, days)
 
 
@@ -63,7 +60,6 @@ def delete_param_by_id(
     current_user: Annotated[schemas.User, Depends(get_current_user)],
     db: Session = Depends(get_session),
 ):
-    check_for_force_login(current_user)
     check_for_demo(current_user)
     try:
         deleted = params.delete_by_id(db, current_user.id, param_id)
@@ -84,7 +80,6 @@ def get_param_by_id(
     current_user: Annotated[schemas.User, Depends(get_current_user)],
     db: Session = Depends(get_session),
 ):
-    check_for_force_login(current_user)
     return params.get_param_by_id(db, current_user.id, param_id)
 
 
@@ -95,6 +90,5 @@ def update_param_by_id(
     data: schemas.ParamUpdate,
     db: Session = Depends(get_session),
 ):
-    check_for_force_login(current_user)
     check_for_demo(current_user)
     return params.update_by_id(db, current_user.id, param_id, **data.model_dump())

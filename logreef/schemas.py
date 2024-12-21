@@ -31,8 +31,12 @@ class UserBase(BaseModel):
     fullname: str | None = None
 
 
-class RegisterUser(UserBase):
-    password: str
+class RegisterUser(BaseModel):
+    username: str | None = None
+    email: str | None = None
+    fullname: str | None = None
+    password: str | None = None
+    accessToken: str | None = None
 
 
 class UpdatePassword(BaseModel):

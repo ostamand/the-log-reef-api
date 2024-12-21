@@ -14,16 +14,17 @@ DROP TABLE IF EXISTS messages;
 
 CREATE TABLE users (
 	id SERIAL PRIMARY KEY,
-	username VARCHAR(255) NOT NULL UNIQUE,
+	username VARCHAR(255) NOT NULL,
 	email VARCHAR(255) NOT NULL UNIQUE,
 	fullname VARCHAR(255),
-	hash_password VARCHAR(255) NOT NULL,
+	hash_password VARCHAR(255),
+	avatar_url TEXT,
 	is_admin BOOLEAN NOT NULL DEFAULT false,
 	is_demo BOOLEAN NOT NULL DEFAULT false,
 	verified BOOLEAN NOT NULL DEFAULT false,
+	google BOOLEAN NOT NULL DEFAULT false,
 	created_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-	last_login_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-	force_login BOOLEAN DEFAULT false
+	last_login_on TIMESTAMP
 );
 
 CREATE TABLE register_access_codes (
