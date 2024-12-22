@@ -53,13 +53,8 @@ def get_by_email(db: Session, email: str):
     return db.query(models.User).filter(models.User.email == email).first()
 
 
-def authenticate(db: Session, username: str, password: str) -> models.User | bool:
-    user = get_by_username(db, username)
-
-    # try to get by email instead, could be smarter about this but will work
-    if not user:
-        user = get_by_email(db, username)
-
+def authenticate(db: Session, email: str, password: str) -> models.User | bool:
+    user = get_by_email(db, email)
     if not user:
         return False
     if not user.verified:
