@@ -2,7 +2,7 @@ from typing import Annotated
 import logging
 from datetime import datetime, timezone
 
-from fastapi import FastAPI, Depends, HTTPException, status, Response
+from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
@@ -50,12 +50,11 @@ def read_root():
     return {"api": "logreef", "version": __version__, "db": get_config(ConfigAPI.DB_URL)}
 
 
-@app.get("/users/me")
+@app.get("/users/me", response_model=schemas.Me)
 async def read_users_me(
     current_user: Annotated[schemas.User, Depends(get_current_user)],
     db: Session = Depends(get_session),
 ):
-    return current_user
     return get_me(db, current_user)
 
 
@@ -189,7 +188,7 @@ def login(
     if user_updates:
         users.update_by_id(db, user.id, **user_updates)
 
-    access_token, expires_date = create_access_token(data={"username": user.username})
+    access_token, expires_date = create_access_token(data={"username": user.username, "email": user.email})
 
     return schemas.Token(
         username=user.username,
