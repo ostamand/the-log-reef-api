@@ -50,11 +50,12 @@ def read_root():
     return {"api": "logreef", "version": __version__, "db": get_config(ConfigAPI.DB_URL)}
 
 
-@app.get("/users/me", response_model=schemas.Me)
+@app.get("/users/me")
 async def read_users_me(
     current_user: Annotated[schemas.User, Depends(get_current_user)],
     db: Session = Depends(get_session),
 ):
+    return current_user
     return get_me(db, current_user)
 
 
@@ -79,25 +80,25 @@ def create_new_user(req: schemas.RegisterUser, db: Session = Depends(get_session
     # check if should register thru oauth 2 access token
     if req.accessToken is not None:
         try:
-            user_data = get_payload_from_supabase_token(req.accessToken)
+            payload = get_payload_from_supabase_token(req.accessToken)
         except:
             raise HTTPException(status.HTTP_401_UNAUTHORIZED, detail="Access token is not valid")
         
         # register user
         ok, data = register_user(
             db,
-            username=user_data["user_metadata"]["name"],
+            username=payload["user_metadata"]["name"],
             password=None,
-            email=user_data["user_metadata"]["email"],
-            fullname=user_data["user_metadata"]["full_name"],
-            avatar_url=user_data["user_metadata"]["avatar_url"],
+            email=payload["user_metadata"]["email"],
+            fullname=payload["user_metadata"]["full_name"],
+            avatar_url=payload["user_metadata"]["avatar_url"],
             google=True
         )
 
         if not ok:
             raise HTTPException(status.HTTP_400_BAD_REQUEST, detail=data["detail"])
 
-        return user_data
+        return payload
 
     ok, data = register_user(
         db,

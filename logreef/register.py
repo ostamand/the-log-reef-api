@@ -26,7 +26,7 @@ def register_user(
             verified=True if google else False
         )
     except Exception as ex:
-        return False, {"detail": "Email already used."}
+        return False, {"detail": "Email already used. Try logging in."}
 
     # for now also create default aquarium for all new users
     default_aquarium = aquariums.create(db, user_db.id, DEFAULT_AQUARIUM_NAME)
