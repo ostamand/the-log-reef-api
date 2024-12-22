@@ -170,12 +170,13 @@ def login(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
     db: Session = Depends(get_session),
 ) -> schemas.Token:
+    # username should be password
     user = users.authenticate(db, form_data.username, form_data.password)
 
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username, password or account not verified",
+            detail="Incorrect email, password or account not verified",
             headers={"WWW-Authenticate": "Bearer"},
         )
 
